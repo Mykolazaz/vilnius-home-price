@@ -2,6 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 import time
 import regex as re
+import pandas as pd
 
 cService = webdriver.ChromeService(executable_path='./webdriver/chromedriver')
 
@@ -53,20 +54,48 @@ for a in pagePosts:
 # Keep only URSs that come from clicking main part of posts
 pagePostLinks = list(filter(lambda x : re.search(r'^https://www\.aruodas\.lt/.*/\?search_pos=', x), pagePostLinks))
 
+# Define DataFrame
+columns = ['name', 'views', 'price', 'price_sq', 'house_number', 'flat_number', 'area', 'rooms',
+           'floor', 'total_floors', 'year', 'object_type', 'building_type', 'heating', 'furnishing',
+           'energy_class', 'window_direction', 'qualities', 'facilities', 'equipment', 'security']
+allObjects = pd.DataFrame(columns=columns)
+
+detailsNameMap = {'Namo numeris':'house_number',
+                    'Buto numeris':'flat_number',
+                    'Unikalus daikto numeris (RC numeris)': 'object_id',
+                    'Plotas':'area',
+                    'Kambarių skaičius':'rooms',
+                    'Aukštas':'floor',
+                    'Aukštų skaičius':'total_floors',
+                    'Metai':'year',
+                    'Objektas':'object_type',
+                    'Pastato tipas':'building_type',
+                    'Šildymas':'heating',
+                    'Įrengimas':'furnishing',
+                    'Langų orientacija':'window_direction',
+                    'Pastato energijos suvartojimo klasė':'energy_class',
+                    'Ypatybės':'qualities',
+                    'Papildomos patalpos':'facilities',
+                    'Papildoma įranga':'equipment',
+                    'Apsauga':'security'}
+
 # Go through all fitered URLs
-for number, url in enumerate(pagePostLinks):
+for i, url in enumerate(pagePostLinks):
     driver.get(url)
 
     # Namo numeris
     # Buto numeris
+    # Unikalus daikto numeris (RC numeris)
     # Plotas
+    # Kambarių skaičius
     # Aukštas
     # Aukštų skaičius
     # Metai (2001, '1993 statyba, 2011 renovacija')
-    # Objektas ()
+    # Objektas
     # Pastato tipas
     # Šildymas
     # Įrengimas
+    # Langų orientacija
     # Pastato energijos suvartojimo klasė
     # Ypatybės (Varžytinės/aukcionas)
     # Papildomos patalpos
@@ -91,11 +120,33 @@ for number, url in enumerate(pagePostLinks):
     objDetailsElemName = driver.find_elements(By.CSS_SELECTOR, 'dl.obj-details dt:not([class]')
     objDetailsName = [re.sub(r':', '', elem.text) for elem in objDetailsElemName]
     objDetailsName = [re.sub(r'sk.', 'skaičius', elem) for elem in objDetailsName]
+    # Map names in Lithuanian to names in English
+    objDetailsName = list(map(detailsNameMap.get, objDetailsName))
+
 
     # Collect all object attribute values
     objDetailsElemValue = driver.find_elements(By.CSS_SELECTOR, 'dl.obj-details dd:not(.numai-v2)')
     objDetailsValue = [elem.text for elem in objDetailsElemValue]
 
+    # Create row in DataFrame
+    allObjects.loc[i] = None
+
+    # Insert object atrributes into DataFrame
+    allObjects.loc[i, 'name'] = objName
+    allObjects.loc[i, 'views'] = objViews
+    allObjects.loc[i, 'price'] = objPrice
+    allObjects.loc[i, 'price_sq'] = objPriceSq
+
+    for name, value in zip(objDetailsName, objDetailsValue):
+        if name == 'area':
+            allObjects.loc[i, name] = re.sub(f' m²', '', str(value))
+        elif name == 'views':
+            allObjects.loc[i, 'total_views'] = re.sub(f' m²', '', str(value))
+            allObjects.loc[i, 'views_today'] = re.sub(f' m²', '', str(value))
+        else:
+            allObjects.loc[i, name] = value
+
+    # Print content to terminal
     print([objName, objViews, objPrice, objPriceSq])
     print(objDetailsName)
     print(f'{objDetailsValue}\n')
@@ -105,5 +156,8 @@ for number, url in enumerate(pagePostLinks):
     driver.back()
 
     time.sleep(2)
+
+# Save DataFrame to CSV
+allObjects.to_csv('objects.csv', index=False)
 
 time.sleep(5)
