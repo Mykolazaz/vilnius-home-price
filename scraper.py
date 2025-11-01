@@ -136,7 +136,7 @@ for page in range(pagesToVisit):
         allObjects.loc[page + i] = None
 
         # Insert object atrributes into DataFrame
-        objNameList = re.split(',', objName)
+        objNameList = list(map(str, re.split(',', objName)))
 
         allObjects.loc[page + i, 'city'] = objNameList[0]
         allObjects.loc[page + i, 'manucipality'] = objNameList[1]
