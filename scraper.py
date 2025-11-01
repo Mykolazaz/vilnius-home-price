@@ -55,7 +55,8 @@ for a in pagePosts:
 pagePostLinks = list(filter(lambda x : re.search(r'^https://www\.aruodas\.lt/.*/\?search_pos=', x), pagePostLinks))
 
 # Define DataFrame
-columns = ['name', 'views', 'price', 'price_sq', 'house_number', 'flat_number', 'area', 'rooms',
+columns = ['city', 'manucipality', 'street', 'object_name', 'total_views', 'views_today', 'price',
+           'price_sq', 'house_number', 'flat_number', 'area', 'rooms',
            'floor', 'total_floors', 'year', 'object_type', 'building_type', 'heating', 'furnishing',
            'energy_class', 'window_direction', 'qualities', 'facilities', 'equipment', 'security']
 allObjects = pd.DataFrame(columns=columns)
@@ -132,17 +133,26 @@ for i, url in enumerate(pagePostLinks):
     allObjects.loc[i] = None
 
     # Insert object atrributes into DataFrame
-    allObjects.loc[i, 'name'] = objName
-    allObjects.loc[i, 'views'] = objViews
+    objNameList = re.split(',', objName)
+
+    allObjects.loc[i, 'city'] = objNameList[0]
+    allObjects.loc[i, 'manucipality'] = objNameList[1]
+    allObjects.loc[i, 'street'] = objNameList[2]
+    allObjects.loc[i, 'object_name'] = objNameList[3]
+
+    allObjects.loc[i, 'total_views'] = re.findall(r'(\d+)/', objViews)[0]
+    allObjects.loc[i, 'views_today'] = re.findall(r'/(\d+)', objViews)[0]
     allObjects.loc[i, 'price'] = objPrice
     allObjects.loc[i, 'price_sq'] = objPriceSq
 
     for name, value in zip(objDetailsName, objDetailsValue):
         if name == 'area':
-            allObjects.loc[i, name] = re.sub(f' m²', '', str(value))
-        elif name == 'views':
-            allObjects.loc[i, 'total_views'] = re.sub(f' m²', '', str(value))
-            allObjects.loc[i, 'views_today'] = re.sub(f' m²', '', str(value))
+            areaNoUnits = re.sub(f' m²', '', value)
+            areaNoComma = re.sub(f',', '.', areaNoUnits)
+            allObjects.loc[i, name] = float(areaNoComma)
+        elif name == 'furnishing':
+            furnishingNoAd = re.sub(f'  \nSužinok apdailos kainą', '', value)
+            allObjects.loc[i, name] = str(furnishingNoAd)
         else:
             allObjects.loc[i, name] = value
 
