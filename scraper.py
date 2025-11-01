@@ -15,7 +15,7 @@ timeout = 5
 wait = WebDriverWait(driver, timeout=timeout)
 
 # Define number of visits (visits pagesToVisit + 1)
-pagesToVisit = 2
+pagesToVisit = 1
 
 # Decline all cookies
 wait.until(EC.element_to_be_clickable((By.ID, 'onetrust-reject-all-handler'))).click()
@@ -39,9 +39,9 @@ startPage = int(driver.find_element(By.CSS_SELECTOR, 'a.active-page').text)
 
 # Define DataFrame
 columns = ['city', 'manucipality', 'street', 'object_name', 'total_views', 'views_today', 'price',
-        'price_sq', 'house_number', 'flat_number', 'area', 'rooms',
-        'floor', 'total_floors', 'year', 'object_type', 'building_type', 'heating', 'furnishing',
-        'energy_class', 'window_direction', 'qualities', 'facilities', 'equipment', 'security']
+        'price_sq', 'house_number', 'flat_number', 'area', 'rooms', 'floor', 'total_floors', 'year',
+        'object_type', 'building_type', 'heating', 'furnishing', 'energy_class', 'window_direction',
+        'qualities', 'facilities', 'equipment', 'security', 'description']
 allObjects = pd.DataFrame(columns=columns)
 
 detailsNameMap = {'Namo numeris':'house_number',
@@ -127,10 +127,12 @@ for page in range(pagesToVisit):
         # Map names in Lithuanian to names in English
         objDetailsName = list(map(detailsNameMap.get, objDetailsName))
 
-
         # Collect all object attribute values
         objDetailsElemValue = driver.find_elements(By.CSS_SELECTOR, 'dl.obj-details dd:not(.numai-v2)')
         objDetailsValue = [elem.text for elem in objDetailsElemValue]
+
+        # Collect full object description
+        objDescription = driver.find_element(By.CSS_SELECTOR, 'div#collapsedText').text
 
         # Create row in DataFrame
         allObjects.loc[page + i] = None
@@ -159,6 +161,8 @@ for page in range(pagesToVisit):
             else:
                 allObjects.loc[page + i, name] = value
 
+        allObjects.loc[page + i, 'description'] = objDescription
+
         # Print content to terminal
         print([objName, objViews, objPrice, objPriceSq])
         print(objDetailsName)
@@ -175,5 +179,3 @@ for page in range(pagesToVisit):
 
 # Save DataFrame to CSV
 allObjects.to_csv('objects.csv', index=False)
-
-time.sleep(5)
