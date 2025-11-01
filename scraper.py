@@ -1,22 +1,24 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import time
 import regex as re
 import pandas as pd
 
 cService = webdriver.ChromeService(executable_path='./webdriver/chromedriver')
-
 driver = webdriver.Chrome(service=cService)
 
 driver.get('https://www.aruodas.lt/')
 
-time.sleep(1)
+timeout = 5
+wait = WebDriverWait(driver, timeout=timeout)
 
 # Decline all cookies
-driver.find_element(By.ID, 'onetrust-reject-all-handler').click()
+wait.until(EC.element_to_be_clickable((By.ID, 'onetrust-reject-all-handler'))).click()
 
 # Open municipality radio menu
-driver.find_elements(By.ID, 'display_FRegion')[0].click()
+wait.until(EC.element_to_be_clickable((By.ID, 'display_FRegion'))).click()
 
 # Click on city Vilnius
 driver.find_element(By.CSS_SELECTOR, 'label.dropDownLabel[for="input_FRegion_461"]').click()
@@ -24,14 +26,10 @@ driver.find_element(By.CSS_SELECTOR, 'label.dropDownLabel[for="input_FRegion_461
 time.sleep(1)
 
 # Click 'Search' button
-driver.find_element(By.ID, 'buttonSearchForm').click()
-
-time.sleep(1)
+wait.until(EC.element_to_be_clickable((By.ID, 'buttonSearchForm'))).click()
 
 # Click advert list order button and choose the second option
-driver.find_element(By.XPATH, '//*[@id="changeListOrder"]/option[2]').click()
-
-time.sleep(1)
+wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="changeListOrder"]/option[2]'))).click()
 
 # Go to the last page
 driver.find_element(By.XPATH, '/html/body/div[1]/div[4]/div[1]/div[9]/a[7]').click()
@@ -161,11 +159,9 @@ for i, url in enumerate(pagePostLinks):
     print(objDetailsName)
     print(f'{objDetailsValue}\n')
 
-    time.sleep(2)
-
     driver.back()
 
-    time.sleep(2)
+    wait.until(lambda d: d.execute_script("return document.readyState") == "complete")
 
 # Save DataFrame to CSV
 allObjects.to_csv('objects.csv', index=False)
