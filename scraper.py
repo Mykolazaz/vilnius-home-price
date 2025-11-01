@@ -46,7 +46,7 @@ pagePostLinks = []
 # Extract URLs from housing posts
 for a in pagePosts:
     href = a.get_attribute("href")
-    # Ensure that URLs are unique and are not ads
+    # Ensure that URLs are unique and are not ads for a bank
     if href not in pagePostLinks and 'luminor' not in href:
         pagePostLinks.append(href)
 
@@ -56,6 +56,41 @@ pagePostLinks = list(filter(lambda x : re.search(r'^https://www\.aruodas\.lt/.*/
 # Go through all fitered URLs
 for url in pagePostLinks:
     driver.get(url)
+
+    # Namo numeris
+    # Buto numeris
+    # Plotas
+    # Aukštas
+    # Aukštų skaičius
+    # Metai (2001, '1993 statyba, 2011 renovacija')
+    # Objektas ()
+    # Pastato tipas
+    # Šildymas
+    # Įrengimas
+    # Pastato energijos suvartojimo klasė
+    # Ypatybės (Varžytinės/aukcionas)
+    # Papildomos patalpos
+    # Papildoma įranga (Skalbimo mašina/Su baldais/Šaldytuvas)
+    # Apsauga (Šarvuotos durys/Signalizacija)
+
+    objName = driver.find_element(By.CSS_SELECTOR, 'h1.obj-header-text').text
+
+    objViews = driver.find_element(By.CSS_SELECTOR, 'div.obj-top-stats strong').text
+
+    objPrice = driver.find_element(By.CSS_SELECTOR, 'span.price-eur').text
+
+    objPriceSq = driver.find_element(By.CSS_SELECTOR, 'span.price-per').text
+
+    objDetailsElemName = driver.find_elements(By.CSS_SELECTOR, 'dl.obj-details dt:not([class]')
+    objDetailsName = [elem.text for elem in objDetailsElemName]
+
+    objDetailsElemValue = driver.find_elements(By.CSS_SELECTOR, 'dl.obj-details dd span.fieldValueContainer')
+    objDetailsValue = [elem.text for elem in objDetailsElemValue]
+
+    print(objDetailsName)
+    print(objDetailsValue)
+
+    print([objName, objViews, objPrice, objPriceSq])
 
     time.sleep(2)
 
