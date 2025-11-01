@@ -77,12 +77,14 @@ for url in pagePostLinks:
 
     objViews = driver.find_element(By.CSS_SELECTOR, 'div.obj-top-stats strong').text
 
-    objPrice = driver.find_element(By.CSS_SELECTOR, 'span.price-eur').text
+    objPriceRaw = driver.find_element(By.CSS_SELECTOR, 'span.price-eur').text
+    objPrice = re.sub(r'[^\d]', '', objPriceRaw)
 
-    objPriceSq = driver.find_element(By.CSS_SELECTOR, 'span.price-per').text
+    objPriceSqRaw = driver.find_element(By.CSS_SELECTOR, 'span.price-per').text
+    objPriceSq = re.sub(r'[^\d]', '', objPriceSqRaw)
 
     objDetailsElemName = driver.find_elements(By.CSS_SELECTOR, 'dl.obj-details dt:not([class]')
-    objDetailsName = [elem.text for elem in objDetailsElemName]
+    objDetailsName = [re.sub(r':', '', elem.text) for elem in objDetailsElemName]
 
     objDetailsElemValue = driver.find_elements(By.CSS_SELECTOR, 'dl.obj-details dd span.fieldValueContainer')
     objDetailsValue = [elem.text for elem in objDetailsElemValue]
