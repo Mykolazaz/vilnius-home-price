@@ -54,7 +54,7 @@ for a in pagePosts:
 pagePostLinks = list(filter(lambda x : re.search(r'^https://www\.aruodas\.lt/.*/\?search_pos=', x), pagePostLinks))
 
 # Go through all fitered URLs
-for url in pagePostLinks:
+for number, url in enumerate(pagePostLinks):
     driver.get(url)
 
     # Namo numeris
@@ -73,26 +73,32 @@ for url in pagePostLinks:
     # Papildoma įranga (Skalbimo mašina/Su baldais/Šaldytuvas)
     # Apsauga (Šarvuotos durys/Signalizacija)
 
+    # Collect object name
     objName = driver.find_element(By.CSS_SELECTOR, 'h1.obj-header-text').text
 
+    # Collect object views
     objViews = driver.find_element(By.CSS_SELECTOR, 'div.obj-top-stats strong').text
 
+    # Collect and filter object price
     objPriceRaw = driver.find_element(By.CSS_SELECTOR, 'span.price-eur').text
     objPrice = re.sub(r'[^\d]', '', objPriceRaw)
 
+    # Collect and filter object price per square meter
     objPriceSqRaw = driver.find_element(By.CSS_SELECTOR, 'span.price-per').text
     objPriceSq = re.sub(r'[^\d]', '', objPriceSqRaw)
 
+    # Collect all object attribute names
     objDetailsElemName = driver.find_elements(By.CSS_SELECTOR, 'dl.obj-details dt:not([class]')
     objDetailsName = [re.sub(r':', '', elem.text) for elem in objDetailsElemName]
+    objDetailsName = [re.sub(r'sk.', 'skaičius', elem) for elem in objDetailsName]
 
-    objDetailsElemValue = driver.find_elements(By.CSS_SELECTOR, 'dl.obj-details dd span.fieldValueContainer')
+    # Collect all object attribute values
+    objDetailsElemValue = driver.find_elements(By.CSS_SELECTOR, 'dl.obj-details dd:not(.numai-v2)')
     objDetailsValue = [elem.text for elem in objDetailsElemValue]
 
-    print(objDetailsName)
-    print(objDetailsValue)
-
     print([objName, objViews, objPrice, objPriceSq])
+    print(objDetailsName)
+    print(f'{objDetailsValue}\n')
 
     time.sleep(2)
 
