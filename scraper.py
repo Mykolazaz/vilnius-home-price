@@ -12,9 +12,9 @@ import random
 TIMEOUT = 5
 
 # Define number of visits (visits pagesToVisit + 1)
-PAGES_TO_VISIT = 9
+PAGES_TO_VISIT = 1
 
-SLEEP_TIME = random.normalvariate(1, 1)
+SLEEP_TIME = random.uniform(0, 0.75)
 
 MAIN_PAGE = 'https://www.aruodas.lt/'
 
@@ -50,7 +50,8 @@ startPage = int(driver.find_element(By.CSS_SELECTOR, 'a.active-page').text)
 columns = ['city', 'manucipality', 'street', 'object_name', 'total_views', 'views_today', 'price',
         'price_sq', 'house_number', 'flat_number', 'area', 'rooms', 'floor', 'total_floors', 'year',
         'object_type', 'building_type', 'heating', 'furnishing', 'energy_class', 'window_direction',
-        'qualities', 'facilities', 'equipment', 'security', 'object_id', 'description']
+        'qualities', 'facilities', 'equipment', 'security', 'object_id', 'distance_kindergarden',
+        'distance_school', 'distance_bus_stop', 'distance_shop', 'description']
 allObjects = pd.DataFrame(columns=columns)
 
 detailsNameMap = {'Namo numeris':'house_number',
@@ -143,6 +144,12 @@ for page in range(PAGES_TO_VISIT):
         # Collect full object description
         objDescription = driver.find_element(By.CSS_SELECTOR, 'div#collapsedText').text
 
+        # Collect distance to important services
+        objDistKinder = driver.find_element(By.CSS_SELECTOR, 'div[data-category="darzeliai"] > div.distance-info > div.distance-value').text
+        objDistSchool = driver.find_element(By.CSS_SELECTOR, 'div[data-category="mokyklos"] > div.distance-info > div.distance-value').text
+        objDistBusStop = driver.find_element(By.CSS_SELECTOR, 'div[data-category="stoteles"] > div.distance-info > div.distance-value').text
+        objDistShop = driver.find_element(By.CSS_SELECTOR, 'div[data-category="parduotuves"] > div.distance-info > div.distance-value').text
+
         # Create row in DataFrame
         allObjects.loc[page + i] = None
 
@@ -169,6 +176,11 @@ for page in range(PAGES_TO_VISIT):
                 allObjects.loc[page + i, name] = str(furnishingNoAd)
             else:
                 allObjects.loc[page + i, name] = value
+
+        allObjects.loc[page + i, 'distance_kindergarden'] = re.sub(r'[^\d]', '', objDistKinder)
+        allObjects.loc[page + i, 'distance_school'] = re.sub(r'[^\d]', '', objDistSchool)
+        allObjects.loc[page + i, 'distance_bus_stop'] = re.sub(r'[^\d]', '', objDistBusStop)
+        allObjects.loc[page + i, 'distance_shop'] = re.sub(r'[^\d]', '', objDistShop)
 
         allObjects.loc[page + i, 'description'] = objDescription
 
