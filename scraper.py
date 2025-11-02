@@ -5,16 +5,11 @@ from selenium.webdriver.support import expected_conditions as EC
 import regex as re
 import pandas as pd
 
-import time
-import random
-
 # Define max waiting time for element to appear
 TIMEOUT = 5
 
 # Define number of visits (visits pagesToVisit + 1)
 PAGES_TO_VISIT = 5
-
-SLEEP_TIME = random.uniform(0, 0.75)
 
 MAIN_PAGE = 'https://www.aruodas.lt/'
 
@@ -75,16 +70,22 @@ detailsNameMap = {'Namo numeris':'house_number',
 
 for page in range(PAGES_TO_VISIT):
 
-    # Collect all housing posts
-    pagePosts = driver.find_elements(
+    # Collect all natural housing posts
+    pageNaturalPosts = driver.find_elements(
         By.CSS_SELECTOR,
         'div.list-row-v2.object-row.selflat.advert a'
     )
 
+    # Collect all unnatural housing posts
+    pageUnnaturalPosts = driver.find_elements(
+        By.CSS_SELECTOR,
+        'table.advert-projects-table.type-id1 > tbody > tr > td:nth-child(1) > a'
+    )
+
     pagePostLinks = []
 
-    # Extract URLs from housing posts
-    for a in pagePosts:
+    # Extract URLs from natural housing posts
+    for a in pageNaturalPosts:
         href = a.get_attribute("href")
         # Ensure that URLs are unique and are not ads for a bank
         if href not in pagePostLinks and 'luminor' not in href:
@@ -92,6 +93,11 @@ for page in range(PAGES_TO_VISIT):
 
     # Keep only URSs that come from clicking main part of posts
     pagePostLinks = list(filter(lambda x : re.search(r'^https://www\.aruodas\.lt/.*/\?search_pos=', x), pagePostLinks))
+
+    # Extract URLs from unnatural housing posts
+    for a in pageUnnaturalPosts:
+        href = a.get_attribute("href")
+        pagePostLinks.append(f'{MAIN_PAGE}{href}')
 
     # Go through all fitered URLs
     for i, url in enumerate(pagePostLinks):
@@ -115,6 +121,8 @@ for page in range(PAGES_TO_VISIT):
         # Papildomos patalpos
         # Papildoma įranga (Skalbimo mašina/Su baldais/Šaldytuvas)
         # Apsauga (Šarvuotos durys/Signalizacija)
+
+        wait.until(lambda d: d.execute_script("return document.readyState") == "complete")
 
         # Collect object name
         objName = driver.find_element(By.CSS_SELECTOR, 'h1.obj-header-text').text
@@ -147,7 +155,10 @@ for page in range(PAGES_TO_VISIT):
         # Collect distance to important services
         objDistKinder = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'div[data-category="darzeliai"] > div.distance-info > div.distance-value'))).text
         objDistSchool = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'div[data-category="mokyklos"] > div.distance-info > div.distance-value'))).text
-        objDistBusStop = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'div[data-category="stoteles"] > div.distance-info > div.distance-value'))).text
+        objDistBusStop = driver.find_elements(By.CSS_SELECTOR, 'div[data-category="stoteles"] > div.distance-info > div.distance-value')
+        if len(objDistBusStop) != 0:
+            objDistBusStop = objDistBusStop[0].text
+            
         objDistShop = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'div[data-category="parduotuves"] > div.distance-info > div.distance-value'))).text
 
         objCrimes = driver.find_elements(By.XPATH, '//*[@id="advertStatisticHolder"]/div[3]/div[1]/span')
@@ -190,7 +201,8 @@ for page in range(PAGES_TO_VISIT):
 
         allObjects.loc[page + i, 'distance_kindergarden'] = re.sub(r'[^\d]', '', objDistKinder)
         allObjects.loc[page + i, 'distance_school'] = re.sub(r'[^\d]', '', objDistSchool)
-        allObjects.loc[page + i, 'distance_bus_stop'] = re.sub(r'[^\d]', '', objDistBusStop)
+        if len(objDistBusStop) != 0:
+            allObjects.loc[page + i, 'distance_bus_stop'] = re.sub(r'[^\d]', '', objDistBusStop)
         allObjects.loc[page + i, 'distance_shop'] = re.sub(r'[^\d]', '', objDistShop)
 
         if len(objCrimes) != 0:
@@ -207,13 +219,9 @@ for page in range(PAGES_TO_VISIT):
         print(objDetailsName)
         print(f'{objDetailsValue}\n')
 
-        time.sleep(SLEEP_TIME)
-
         driver.back()
 
         wait.until(lambda d: d.execute_script("return document.readyState") == "complete")
-
-        time.sleep(SLEEP_TIME)
 
     
     nextPage = f'{MAIN_PAGE}butai/vilniuje/puslapis/{startPage-(page+1)}/?FOrder=AddDate'
