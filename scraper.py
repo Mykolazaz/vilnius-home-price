@@ -4,12 +4,13 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import regex as re
 import pandas as pd
+import numpy as np
 
 # Define max waiting time for element to appear
 TIMEOUT = 5
 
 # Define number of visits (visits pagesToVisit + 1)
-PAGES_TO_VISIT = 5
+PAGES_TO_VISIT = 1
 
 MAIN_PAGE = 'https://www.aruodas.lt/'
 
@@ -46,7 +47,8 @@ columns = ['city', 'manucipality', 'street', 'object_name', 'total_views', 'view
         'price_sq', 'house_number', 'flat_number', 'area', 'rooms', 'floor', 'total_floors', 'year',
         'object_type', 'building_type', 'heating', 'furnishing', 'energy_class', 'window_direction',
         'qualities', 'facilities', 'equipment', 'security', 'object_id', 'distance_kindergarden',
-        'distance_school', 'distance_bus_stop', 'distance_shop', 'crimes', 'no2', 'kd10', 'description']
+        'distance_school', 'distance_bus_stop', 'distance_shop', 'crimes', 'no2', 'kd10',
+        'time_cathedral', 'time_train_station', 'distance_cathedral', 'distance_train_station', 'description']
 allObjects = pd.DataFrame(columns=columns)
 
 detailsNameMap = {'Namo numeris':'house_number',
@@ -163,6 +165,12 @@ for page in range(PAGES_TO_VISIT):
             
         objDistShop = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'div[data-category="parduotuves"] > div.distance-info > div.distance-value'))).text
 
+        objTimeCathedral = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(1) > div.destination-time.peak'))).text
+        objDistCathedral = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(1) > div.destination-distance'))).text
+
+        objTimeTrainStation = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(3) > div.destination-time.peak'))).text
+        objDistTrainStation = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(3) > div.destination-distance'))).text
+
         objCrimes = driver.find_elements(By.XPATH, '//*[@id="advertStatisticHolder"]/div[3]/div[1]/span')
         objNO2 = driver.find_elements(By.XPATH, '//*[@id="advertStatisticHolder"]/div[1]/div[1]/div[1]/div[1]/span')
         objKD10 = driver.find_elements(By.XPATH, '//*[@id="advertStatisticHolder"]/div[1]/div[1]/div[2]/div[1]/span')
@@ -207,6 +215,18 @@ for page in range(PAGES_TO_VISIT):
         if len(objDistBusStop) != 0:
             allObjects.loc[page + i, 'distance_bus_stop'] = re.sub(r'[^\d]', '', objDistBusStop)
         allObjects.loc[page + i, 'distance_shop'] = re.sub(r'[^\d]', '', objDistShop)
+
+        objTimeCathedral = re.search(r'(\d+)\s*-\s*(\d+)', objTimeCathedral)
+        objTimeCathedral = np.mean(list(map(int, objTimeCathedral.groups())))
+
+        allObjects.loc[page + i, 'time_cathedral'] = objTimeCathedral
+        allObjects.loc[page + i, 'distance_cathedral'] = re.sub(r'[^\d|^\.]', '', objDistCathedral)
+
+        objTimeTrainStation = re.search(r'(\d+)\s*-\s*(\d+)', objTimeTrainStation)
+        objTimeTrainStation = np.mean(list(map(int, objTimeTrainStation.groups())))
+
+        allObjects.loc[page + i, 'time_train_station'] = objTimeTrainStation
+        allObjects.loc[page + i, 'distance_train_station'] = re.sub(r'[^\d|^\.]', '', objDistTrainStation)
 
         if len(objCrimes) != 0:
             allObjects.loc[page + i, 'crimes'] = re.sub(r'[^\d|^\.]', '', objCrimes)
