@@ -5,11 +5,16 @@ from selenium.webdriver.support import expected_conditions as EC
 import regex as re
 import pandas as pd
 
+import time
+import random
+
 # Define max waiting time for element to appear
 TIMEOUT = 5
 
 # Define number of visits (visits pagesToVisit + 1)
-PAGES_TO_VISIT = 1
+PAGES_TO_VISIT = 9
+
+SLEEP_TIME = random.normalvariate(1, 1)
 
 MAIN_PAGE = 'https://www.aruodas.lt/'
 
@@ -45,7 +50,7 @@ startPage = int(driver.find_element(By.CSS_SELECTOR, 'a.active-page').text)
 columns = ['city', 'manucipality', 'street', 'object_name', 'total_views', 'views_today', 'price',
         'price_sq', 'house_number', 'flat_number', 'area', 'rooms', 'floor', 'total_floors', 'year',
         'object_type', 'building_type', 'heating', 'furnishing', 'energy_class', 'window_direction',
-        'qualities', 'facilities', 'equipment', 'security', 'description']
+        'qualities', 'facilities', 'equipment', 'security', 'object_id', 'description']
 allObjects = pd.DataFrame(columns=columns)
 
 detailsNameMap = {'Namo numeris':'house_number',
@@ -172,9 +177,14 @@ for page in range(PAGES_TO_VISIT):
         print(objDetailsName)
         print(f'{objDetailsValue}\n')
 
+        time.sleep(SLEEP_TIME)
+
         driver.back()
 
         wait.until(lambda d: d.execute_script("return document.readyState") == "complete")
+
+        time.sleep(SLEEP_TIME)
+
     
     nextPage = f'{MAIN_PAGE}butai/vilniuje/puslapis/{startPage-(page+1)}/?FOrder=AddDate'
     driver.get(nextPage)
