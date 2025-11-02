@@ -42,7 +42,7 @@ driver.find_element(By.XPATH, '/html/body/div[1]/div[4]/div[1]/div[9]/a[7]').cli
 startPage = int(driver.find_element(By.CSS_SELECTOR, 'a.active-page').text)
 
 # Define DataFrame
-columns = ['city', 'manucipality', 'street', 'object_name', 'total_views', 'views_today', 'price',
+columns = ['city', 'manucipality', 'street', 'object_name', 'total_views', 'views_today', 'likes', 'price',
         'price_sq', 'house_number', 'flat_number', 'area', 'rooms', 'floor', 'total_floors', 'year',
         'object_type', 'building_type', 'heating', 'furnishing', 'energy_class', 'window_direction',
         'qualities', 'facilities', 'equipment', 'security', 'object_id', 'distance_kindergarden',
@@ -130,6 +130,8 @@ for page in range(PAGES_TO_VISIT):
         # Collect object views
         objViews = driver.find_element(By.CSS_SELECTOR, 'div.obj-top-stats strong').text
 
+        objLikes = driver.find_element(By.CSS_SELECTOR, 'div.obj-top-stats > span').text
+
         # Collect and filter object price
         objPriceRaw = driver.find_element(By.CSS_SELECTOR, 'span.price-eur').text
         objPrice = re.sub(r'[^\d]', '', objPriceRaw)
@@ -185,6 +187,7 @@ for page in range(PAGES_TO_VISIT):
 
         allObjects.loc[page + i, 'total_views'] = re.findall(r'(\d+)/', objViews)[0]
         allObjects.loc[page + i, 'views_today'] = re.findall(r'/(\d+)', objViews)[0]
+        allObjects.loc[page + i, 'likes'] = objLikes
         allObjects.loc[page + i, 'price'] = objPrice
         allObjects.loc[page + i, 'price_sq'] = objPriceSq
 
