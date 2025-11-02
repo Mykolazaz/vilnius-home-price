@@ -13,7 +13,7 @@ PAGES_TO_VISIT = 5
 
 MAIN_PAGE = 'https://www.aruodas.lt/'
 
-cService = webdriver.ChromeService(executable_path='./webdriver/chromedriver')
+cService = webdriver.ChromeService(executable_path='./webdriver/chromedriver', )
 driver = webdriver.Chrome(service=cService)
 
 driver.get(MAIN_PAGE)
@@ -97,7 +97,7 @@ for page in range(PAGES_TO_VISIT):
     # Extract URLs from unnatural housing posts
     for a in pageUnnaturalPosts:
         href = a.get_attribute("href")
-        pagePostLinks.append(f'{MAIN_PAGE}{href}')
+        pagePostLinks.append(href)
 
     # Go through all fitered URLs
     for i, url in enumerate(pagePostLinks):
