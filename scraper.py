@@ -12,7 +12,7 @@ import random
 TIMEOUT = 5
 
 # Define number of visits (visits pagesToVisit + 1)
-PAGES_TO_VISIT = 1
+PAGES_TO_VISIT = 5
 
 SLEEP_TIME = random.uniform(0, 0.75)
 
@@ -51,7 +51,7 @@ columns = ['city', 'manucipality', 'street', 'object_name', 'total_views', 'view
         'price_sq', 'house_number', 'flat_number', 'area', 'rooms', 'floor', 'total_floors', 'year',
         'object_type', 'building_type', 'heating', 'furnishing', 'energy_class', 'window_direction',
         'qualities', 'facilities', 'equipment', 'security', 'object_id', 'distance_kindergarden',
-        'distance_school', 'distance_bus_stop', 'distance_shop', 'description']
+        'distance_school', 'distance_bus_stop', 'distance_shop', 'crimes', 'no2', 'kd10', 'description']
 allObjects = pd.DataFrame(columns=columns)
 
 detailsNameMap = {'Namo numeris':'house_number',
@@ -145,10 +145,21 @@ for page in range(PAGES_TO_VISIT):
         objDescription = driver.find_element(By.CSS_SELECTOR, 'div#collapsedText').text
 
         # Collect distance to important services
-        objDistKinder = driver.find_element(By.CSS_SELECTOR, 'div[data-category="darzeliai"] > div.distance-info > div.distance-value').text
-        objDistSchool = driver.find_element(By.CSS_SELECTOR, 'div[data-category="mokyklos"] > div.distance-info > div.distance-value').text
-        objDistBusStop = driver.find_element(By.CSS_SELECTOR, 'div[data-category="stoteles"] > div.distance-info > div.distance-value').text
-        objDistShop = driver.find_element(By.CSS_SELECTOR, 'div[data-category="parduotuves"] > div.distance-info > div.distance-value').text
+        objDistKinder = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'div[data-category="darzeliai"] > div.distance-info > div.distance-value'))).text
+        objDistSchool = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'div[data-category="mokyklos"] > div.distance-info > div.distance-value'))).text
+        objDistBusStop = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'div[data-category="stoteles"] > div.distance-info > div.distance-value'))).text
+        objDistShop = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'div[data-category="parduotuves"] > div.distance-info > div.distance-value'))).text
+
+        objCrimes = driver.find_elements(By.XPATH, '//*[@id="advertStatisticHolder"]/div[3]/div[1]/span')
+        objNO2 = driver.find_elements(By.XPATH, '//*[@id="advertStatisticHolder"]/div[1]/div[1]/div[1]/div[1]/span')
+        objKD10 = driver.find_elements(By.XPATH, '//*[@id="advertStatisticHolder"]/div[1]/div[1]/div[2]/div[1]/span')
+        if len(objCrimes) != 0:
+            objCrimes = objCrimes[0].text
+        if len(objNO2) != 0:
+            objNO2 = objNO2[0].text
+        if len(objKD10) != 0:
+            objKD10 = objKD10[0].text
+        
 
         # Create row in DataFrame
         allObjects.loc[page + i] = None
@@ -181,6 +192,13 @@ for page in range(PAGES_TO_VISIT):
         allObjects.loc[page + i, 'distance_school'] = re.sub(r'[^\d]', '', objDistSchool)
         allObjects.loc[page + i, 'distance_bus_stop'] = re.sub(r'[^\d]', '', objDistBusStop)
         allObjects.loc[page + i, 'distance_shop'] = re.sub(r'[^\d]', '', objDistShop)
+
+        if len(objCrimes) != 0:
+            allObjects.loc[page + i, 'crimes'] = re.sub(r'[^\d|^\.]', '', objCrimes)
+        if len(objNO2) != 0:
+            allObjects.loc[page + i, 'no2'] = re.sub(r'[^\d|^\.]', '', objNO2)
+        if len(objKD10) != 0:
+            allObjects.loc[page + i, 'kd10'] = re.sub(r'[^\d|^\.]', '', objKD10)
 
         allObjects.loc[page + i, 'description'] = objDescription
 
