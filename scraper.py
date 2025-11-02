@@ -2,20 +2,24 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import time
 import regex as re
 import pandas as pd
+
+# Define max waiting time for element to appear
+TIMEOUT = 5
+
+# Define number of visits (visits pagesToVisit + 1)
+PAGES_TO_VISIT = 1
+
+MAIN_PAGE = 'https://www.aruodas.lt/'
 
 cService = webdriver.ChromeService(executable_path='./webdriver/chromedriver')
 driver = webdriver.Chrome(service=cService)
 
-driver.get('https://www.aruodas.lt/')
+driver.get(MAIN_PAGE)
 
-timeout = 5
-wait = WebDriverWait(driver, timeout=timeout)
-
-# Define number of visits (visits pagesToVisit + 1)
-pagesToVisit = 1
+# Define waiting object
+wait = WebDriverWait(driver, timeout=TIMEOUT)
 
 # Decline all cookies
 wait.until(EC.element_to_be_clickable((By.ID, 'onetrust-reject-all-handler'))).click()
@@ -63,7 +67,7 @@ detailsNameMap = {'Namo numeris':'house_number',
                         'Papildoma įranga':'equipment',
                         'Apsauga':'security'}
 
-for page in range(pagesToVisit):
+for page in range(PAGES_TO_VISIT):
 
     # Collect all housing posts
     pagePosts = driver.find_elements(
@@ -172,7 +176,7 @@ for page in range(pagesToVisit):
 
         wait.until(lambda d: d.execute_script("return document.readyState") == "complete")
     
-    nextPage = f'https://www.aruodas.lt/butai/vilniuje/puslapis/{startPage-(page+1)}/?FOrder=AddDate'
+    nextPage = f'{MAIN_PAGE}butai/vilniuje/puslapis/{startPage-(page+1)}/?FOrder=AddDate'
     driver.get(nextPage)
     wait.until(lambda d: d.execute_script("return document.readyState") == "complete")
 
