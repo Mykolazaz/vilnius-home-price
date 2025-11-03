@@ -10,8 +10,8 @@ import numpy as np
 TIMEOUT = 5
 
 # Define number of visits (visits pagesToVisit + 1)
-PAGES_TO_VISIT = 1
-
+PAGES_TO_VISIT = 104
+ 
 MAIN_PAGE = 'https://www.aruodas.lt/'
 
 cService = webdriver.ChromeService(executable_path='./webdriver/chromedriver', )
@@ -48,7 +48,7 @@ columns = ['city', 'municipality', 'street', 'object_name', 'total_views', 'view
         'object_type', 'building_type', 'heating', 'furnishing', 'energy_class', 'window_direction',
         'qualities', 'facilities', 'equipment', 'security', 'object_id', 'distance_kindergarden',
         'distance_school', 'distance_bus_stop', 'distance_shop', 'crimes', 'no2', 'kd10',
-        'time_cathedral', 'time_train_station', 'distance_cathedral', 'distance_train_station', 'description']
+        'time_cathedral', 'time_train_station', 'distance_cathedral', 'distance_train_station', 'description', 'contact']
 allObjects = pd.DataFrame(columns=columns)
 
 detailsNameMap = {'Namo numeris':'house_number',
@@ -159,6 +159,12 @@ try:
             # Collect full object description
             objDescription = driver.find_element(By.CSS_SELECTOR, 'div#collapsedText').text
 
+            objContact = driver.find_elements(By.CSS_SELECTOR, 'div.contact-form-sidebar--phone > div > span.phone_item_0')
+            if len(objContact) == 0:
+                objContact = driver.find_elements(By.CSS_SELECTOR, 'div.contact-form-sidebar--phone > div > span')[0].text
+            else:
+                objContact = objContact[0].text
+
             # Collect distance to important services
             objDistKinder = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'div[data-category="darzeliai"] > div.distance-info > div.distance-value'))).text
             objDistSchool = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'div[data-category="mokyklos"] > div.distance-info > div.distance-value'))).text
@@ -242,6 +248,8 @@ try:
                 allObjects.loc[page + i, 'kd10'] = re.sub(r'[^\d|^\.]', '', objKD10)
 
             allObjects.loc[page + i, 'description'] = objDescription
+
+            allObjects.loc[page + i, 'contact'] = objContact
 
             # Print content to terminal
             print([objName, objViews, objPrice, objPriceSq])
