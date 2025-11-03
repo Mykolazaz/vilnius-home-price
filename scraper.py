@@ -70,183 +70,192 @@ detailsNameMap = {'Namo numeris':'house_number',
                         'Papildoma įranga':'equipment',
                         'Apsauga':'security'}
 
-for page in range(PAGES_TO_VISIT):
+try:
+    for page in range(PAGES_TO_VISIT):
 
-    # Collect all natural housing posts
-    pageNaturalPosts = driver.find_elements(
-        By.CSS_SELECTOR,
-        'div.list-row-v2.object-row.selflat.advert a'
-    )
+        # Collect all natural housing posts
+        pageNaturalPosts = driver.find_elements(
+            By.CSS_SELECTOR,
+            'div.list-row-v2.object-row.selflat.advert a'
+        )
 
-    # Collect all unnatural housing posts
-    pageUnnaturalPosts = driver.find_elements(
-        By.CSS_SELECTOR,
-        'table.advert-projects-table.type-id1 > tbody > tr > td:nth-child(1) > a'
-    )
+        # Collect all unnatural housing posts
+        pageUnnaturalPosts = driver.find_elements(
+            By.CSS_SELECTOR,
+            'table.advert-projects-table.type-id1 > tbody > tr > td:nth-child(1) > a'
+        )
 
-    pagePostLinks = []
+        pagePostLinks = []
 
-    # Extract URLs from natural housing posts
-    for a in pageNaturalPosts:
-        href = a.get_attribute("href")
-        # Ensure that URLs are unique and are not ads for a bank
-        if href not in pagePostLinks and 'luminor' not in href:
+        # Extract URLs from natural housing posts
+        for a in pageNaturalPosts:
+            href = a.get_attribute("href")
+            # Ensure that URLs are unique and are not ads for a bank
+            if href not in pagePostLinks and 'luminor' not in href:
+                pagePostLinks.append(href)
+
+        # Keep only URSs that come from clicking main part of posts
+        pagePostLinks = list(filter(lambda x : re.search(r'^https://www\.aruodas\.lt/.*/\?search_pos=', x), pagePostLinks))
+
+        # Extract URLs from unnatural housing posts
+        for a in pageUnnaturalPosts:
+            href = a.get_attribute("href")
             pagePostLinks.append(href)
 
-    # Keep only URSs that come from clicking main part of posts
-    pagePostLinks = list(filter(lambda x : re.search(r'^https://www\.aruodas\.lt/.*/\?search_pos=', x), pagePostLinks))
+        # Go through all fitered URLs
+        for i, url in enumerate(pagePostLinks):
+            driver.get(url)
 
-    # Extract URLs from unnatural housing posts
-    for a in pageUnnaturalPosts:
-        href = a.get_attribute("href")
-        pagePostLinks.append(href)
+            # Namo numeris
+            # Buto numeris
+            # Unikalus daikto numeris (RC numeris)
+            # Plotas
+            # Kambarių skaičius
+            # Aukštas
+            # Aukštų skaičius
+            # Metai (2001, '1993 statyba, 2011 renovacija')
+            # Objektas
+            # Pastato tipas
+            # Šildymas
+            # Įrengimas
+            # Langų orientacija
+            # Pastato energijos suvartojimo klasė
+            # Ypatybės (Varžytinės/aukcionas)
+            # Papildomos patalpos
+            # Papildoma įranga (Skalbimo mašina/Su baldais/Šaldytuvas)
+            # Apsauga (Šarvuotos durys/Signalizacija)
 
-    # Go through all fitered URLs
-    for i, url in enumerate(pagePostLinks):
-        driver.get(url)
+            wait.until(lambda d: d.execute_script("return document.readyState") == "complete")
 
-        # Namo numeris
-        # Buto numeris
-        # Unikalus daikto numeris (RC numeris)
-        # Plotas
-        # Kambarių skaičius
-        # Aukštas
-        # Aukštų skaičius
-        # Metai (2001, '1993 statyba, 2011 renovacija')
-        # Objektas
-        # Pastato tipas
-        # Šildymas
-        # Įrengimas
-        # Langų orientacija
-        # Pastato energijos suvartojimo klasė
-        # Ypatybės (Varžytinės/aukcionas)
-        # Papildomos patalpos
-        # Papildoma įranga (Skalbimo mašina/Su baldais/Šaldytuvas)
-        # Apsauga (Šarvuotos durys/Signalizacija)
+            # Collect object name
+            objName = driver.find_element(By.CSS_SELECTOR, 'h1.obj-header-text').text
 
-        wait.until(lambda d: d.execute_script("return document.readyState") == "complete")
+            # Collect object views
+            objViews = driver.find_element(By.CSS_SELECTOR, 'div.obj-top-stats strong').text
 
-        # Collect object name
-        objName = driver.find_element(By.CSS_SELECTOR, 'h1.obj-header-text').text
+            objLikes = driver.find_elements(By.CSS_SELECTOR, 'div.obj-top-stats > span')
+            if len(objLikes) != 0:
+                objLikes = objLikes[0].text
 
-        # Collect object views
-        objViews = driver.find_element(By.CSS_SELECTOR, 'div.obj-top-stats strong').text
+            # Collect and filter object price
+            objPriceRaw = driver.find_element(By.CSS_SELECTOR, 'span.price-eur').text
+            objPrice = re.sub(r'[^\d]', '', objPriceRaw)
 
-        objLikes = driver.find_element(By.CSS_SELECTOR, 'div.obj-top-stats > span').text
+            # Collect and filter object price per square meter
+            objPriceSqRaw = driver.find_element(By.CSS_SELECTOR, 'span.price-per').text
+            objPriceSq = re.sub(r'[^\d]', '', objPriceSqRaw)
 
-        # Collect and filter object price
-        objPriceRaw = driver.find_element(By.CSS_SELECTOR, 'span.price-eur').text
-        objPrice = re.sub(r'[^\d]', '', objPriceRaw)
+            # Collect all object attribute names
+            objDetailsElemName = driver.find_elements(By.CSS_SELECTOR, 'dl.obj-details dt:not([class]')
+            objDetailsName = [re.sub(r':', '', elem.text) for elem in objDetailsElemName]
+            objDetailsName = [re.sub(r'sk.', 'skaičius', elem) for elem in objDetailsName]
+            # Map names in Lithuanian to names in English
+            objDetailsName = list(map(detailsNameMap.get, objDetailsName))
 
-        # Collect and filter object price per square meter
-        objPriceSqRaw = driver.find_element(By.CSS_SELECTOR, 'span.price-per').text
-        objPriceSq = re.sub(r'[^\d]', '', objPriceSqRaw)
+            # Collect all object attribute values
+            objDetailsElemValue = driver.find_elements(By.CSS_SELECTOR, 'dl.obj-details dd:not(.numai-v2)')
+            objDetailsValue = [elem.text for elem in objDetailsElemValue]
 
-        # Collect all object attribute names
-        objDetailsElemName = driver.find_elements(By.CSS_SELECTOR, 'dl.obj-details dt:not([class]')
-        objDetailsName = [re.sub(r':', '', elem.text) for elem in objDetailsElemName]
-        objDetailsName = [re.sub(r'sk.', 'skaičius', elem) for elem in objDetailsName]
-        # Map names in Lithuanian to names in English
-        objDetailsName = list(map(detailsNameMap.get, objDetailsName))
+            # Collect full object description
+            objDescription = driver.find_element(By.CSS_SELECTOR, 'div#collapsedText').text
 
-        # Collect all object attribute values
-        objDetailsElemValue = driver.find_elements(By.CSS_SELECTOR, 'dl.obj-details dd:not(.numai-v2)')
-        objDetailsValue = [elem.text for elem in objDetailsElemValue]
+            # Collect distance to important services
+            objDistKinder = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'div[data-category="darzeliai"] > div.distance-info > div.distance-value'))).text
+            objDistSchool = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'div[data-category="mokyklos"] > div.distance-info > div.distance-value'))).text
+            objDistBusStop = driver.find_elements(By.CSS_SELECTOR, 'div[data-category="stoteles"] > div.distance-info > div.distance-value')
+            if len(objDistBusStop) != 0:
+                objDistBusStop = objDistBusStop[0].text
+                
+            objDistShop = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'div[data-category="parduotuves"] > div.distance-info > div.distance-value'))).text
 
-        # Collect full object description
-        objDescription = driver.find_element(By.CSS_SELECTOR, 'div#collapsedText').text
+            objTimeCathedral = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(1) > div.destination-time.peak'))).text
+            objDistCathedral = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(1) > div.destination-distance'))).text
 
-        # Collect distance to important services
-        objDistKinder = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'div[data-category="darzeliai"] > div.distance-info > div.distance-value'))).text
-        objDistSchool = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'div[data-category="mokyklos"] > div.distance-info > div.distance-value'))).text
-        objDistBusStop = driver.find_elements(By.CSS_SELECTOR, 'div[data-category="stoteles"] > div.distance-info > div.distance-value')
-        if len(objDistBusStop) != 0:
-            objDistBusStop = objDistBusStop[0].text
+            objTimeTrainStation = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(3) > div.destination-time.peak'))).text
+            objDistTrainStation = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(3) > div.destination-distance'))).text
+
+            objCrimes = driver.find_elements(By.XPATH, '//*[@id="advertStatisticHolder"]/div[3]/div[1]/span')
+            objNO2 = driver.find_elements(By.XPATH, '//*[@id="advertStatisticHolder"]/div[1]/div[1]/div[1]/div[1]/span')
+            objKD10 = driver.find_elements(By.XPATH, '//*[@id="advertStatisticHolder"]/div[1]/div[1]/div[2]/div[1]/span')
+            if len(objCrimes) != 0:
+                objCrimes = objCrimes[0].text
+            if len(objNO2) != 0:
+                objNO2 = objNO2[0].text
+            if len(objKD10) != 0:
+                objKD10 = objKD10[0].text
             
-        objDistShop = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'div[data-category="parduotuves"] > div.distance-info > div.distance-value'))).text
 
-        objTimeCathedral = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(1) > div.destination-time.peak'))).text
-        objDistCathedral = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(1) > div.destination-distance'))).text
+            # Create row in DataFrame
+            allObjects.loc[page + i] = None
 
-        objTimeTrainStation = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(3) > div.destination-time.peak'))).text
-        objDistTrainStation = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(3) > div.destination-distance'))).text
+            # Insert object atrributes into DataFrame
+            objNameList = list(map(str, re.split(',', objName)))
 
-        objCrimes = driver.find_elements(By.XPATH, '//*[@id="advertStatisticHolder"]/div[3]/div[1]/span')
-        objNO2 = driver.find_elements(By.XPATH, '//*[@id="advertStatisticHolder"]/div[1]/div[1]/div[1]/div[1]/span')
-        objKD10 = driver.find_elements(By.XPATH, '//*[@id="advertStatisticHolder"]/div[1]/div[1]/div[2]/div[1]/span')
-        if len(objCrimes) != 0:
-            objCrimes = objCrimes[0].text
-        if len(objNO2) != 0:
-            objNO2 = objNO2[0].text
-        if len(objKD10) != 0:
-            objKD10 = objKD10[0].text
-        
+            allObjects.loc[page + i, 'city'] = objNameList[0]
+            allObjects.loc[page + i, 'manucipality'] = objNameList[1]
+            allObjects.loc[page + i, 'street'] = objNameList[2]
+            allObjects.loc[page + i, 'object_name'] = objNameList[3]
 
-        # Create row in DataFrame
-        allObjects.loc[page + i] = None
+            allObjects.loc[page + i, 'total_views'] = re.findall(r'(\d+)/', objViews)[0]
+            allObjects.loc[page + i, 'views_today'] = re.findall(r'/(\d+)', objViews)[0]
 
-        # Insert object atrributes into DataFrame
-        objNameList = list(map(str, re.split(',', objName)))
+            if len(objLikes) != 0:
+                allObjects.loc[page + i, 'likes'] = objLikes
 
-        allObjects.loc[page + i, 'city'] = objNameList[0]
-        allObjects.loc[page + i, 'manucipality'] = objNameList[1]
-        allObjects.loc[page + i, 'street'] = objNameList[2]
-        allObjects.loc[page + i, 'object_name'] = objNameList[3]
+            allObjects.loc[page + i, 'price'] = objPrice
+            allObjects.loc[page + i, 'price_sq'] = objPriceSq
 
-        allObjects.loc[page + i, 'total_views'] = re.findall(r'(\d+)/', objViews)[0]
-        allObjects.loc[page + i, 'views_today'] = re.findall(r'/(\d+)', objViews)[0]
-        allObjects.loc[page + i, 'likes'] = objLikes
-        allObjects.loc[page + i, 'price'] = objPrice
-        allObjects.loc[page + i, 'price_sq'] = objPriceSq
+            for name, value in zip(objDetailsName, objDetailsValue):
+                if name == 'area':
+                    areaNoUnits = re.sub(f' m²', '', value)
+                    areaNoComma = re.sub(f',', '.', areaNoUnits)
+                    allObjects.loc[page + i, name] = float(areaNoComma)
+                elif name == 'furnishing':
+                    furnishingNoAd = re.sub(f'  \nSužinok apdailos kainą', '', value)
+                    allObjects.loc[page + i, name] = str(furnishingNoAd)
+                else:
+                    allObjects.loc[page + i, name] = value
 
-        for name, value in zip(objDetailsName, objDetailsValue):
-            if name == 'area':
-                areaNoUnits = re.sub(f' m²', '', value)
-                areaNoComma = re.sub(f',', '.', areaNoUnits)
-                allObjects.loc[page + i, name] = float(areaNoComma)
-            elif name == 'furnishing':
-                furnishingNoAd = re.sub(f'  \nSužinok apdailos kainą', '', value)
-                allObjects.loc[page + i, name] = str(furnishingNoAd)
-            else:
-                allObjects.loc[page + i, name] = value
+            allObjects.loc[page + i, 'distance_kindergarden'] = re.sub(r'[^\d]', '', objDistKinder)
+            allObjects.loc[page + i, 'distance_school'] = re.sub(r'[^\d]', '', objDistSchool)
+            if len(objDistBusStop) != 0:
+                allObjects.loc[page + i, 'distance_bus_stop'] = re.sub(r'[^\d]', '', objDistBusStop)
+            allObjects.loc[page + i, 'distance_shop'] = re.sub(r'[^\d]', '', objDistShop)
 
-        allObjects.loc[page + i, 'distance_kindergarden'] = re.sub(r'[^\d]', '', objDistKinder)
-        allObjects.loc[page + i, 'distance_school'] = re.sub(r'[^\d]', '', objDistSchool)
-        if len(objDistBusStop) != 0:
-            allObjects.loc[page + i, 'distance_bus_stop'] = re.sub(r'[^\d]', '', objDistBusStop)
-        allObjects.loc[page + i, 'distance_shop'] = re.sub(r'[^\d]', '', objDistShop)
+            objTimeCathedral = re.search(r'(\d+)\s*-\s*(\d+)', objTimeCathedral)
+            objTimeCathedral = np.mean(list(map(int, objTimeCathedral.groups())))
 
-        objTimeCathedral = re.search(r'(\d+)\s*-\s*(\d+)', objTimeCathedral)
-        objTimeCathedral = np.mean(list(map(int, objTimeCathedral.groups())))
+            allObjects.loc[page + i, 'time_cathedral'] = objTimeCathedral
+            allObjects.loc[page + i, 'distance_cathedral'] = re.sub(r'[^\d|^\.]', '', objDistCathedral)
 
-        allObjects.loc[page + i, 'time_cathedral'] = objTimeCathedral
-        allObjects.loc[page + i, 'distance_cathedral'] = re.sub(r'[^\d|^\.]', '', objDistCathedral)
+            objTimeTrainStation = re.search(r'(\d+)\s*-\s*(\d+)', objTimeTrainStation)
+            objTimeTrainStation = np.mean(list(map(int, objTimeTrainStation.groups())))
 
-        objTimeTrainStation = re.search(r'(\d+)\s*-\s*(\d+)', objTimeTrainStation)
-        objTimeTrainStation = np.mean(list(map(int, objTimeTrainStation.groups())))
+            allObjects.loc[page + i, 'time_train_station'] = objTimeTrainStation
+            allObjects.loc[page + i, 'distance_train_station'] = re.sub(r'[^\d|^\.]', '', objDistTrainStation)
 
-        allObjects.loc[page + i, 'time_train_station'] = objTimeTrainStation
-        allObjects.loc[page + i, 'distance_train_station'] = re.sub(r'[^\d|^\.]', '', objDistTrainStation)
+            if len(objCrimes) != 0:
+                allObjects.loc[page + i, 'crimes'] = re.sub(r'[^\d|^\.]', '', objCrimes)
+            if len(objNO2) != 0:
+                allObjects.loc[page + i, 'no2'] = re.sub(r'[^\d|^\.]', '', objNO2)
+            if len(objKD10) != 0:
+                allObjects.loc[page + i, 'kd10'] = re.sub(r'[^\d|^\.]', '', objKD10)
 
-        if len(objCrimes) != 0:
-            allObjects.loc[page + i, 'crimes'] = re.sub(r'[^\d|^\.]', '', objCrimes)
-        if len(objNO2) != 0:
-            allObjects.loc[page + i, 'no2'] = re.sub(r'[^\d|^\.]', '', objNO2)
-        if len(objKD10) != 0:
-            allObjects.loc[page + i, 'kd10'] = re.sub(r'[^\d|^\.]', '', objKD10)
+            allObjects.loc[page + i, 'description'] = objDescription
 
-        allObjects.loc[page + i, 'description'] = objDescription
+            # Print content to terminal
+            print([objName, objViews, objPrice, objPriceSq])
+            print(objDetailsName)
+            print(f'{objDetailsValue}\n')
 
-        # Print content to terminal
-        print([objName, objViews, objPrice, objPriceSq])
-        print(objDetailsName)
-        print(f'{objDetailsValue}\n')
+            driver.back()
 
-        driver.back()
-
-        wait.until(lambda d: d.execute_script("return document.readyState") == "complete")
-
+            wait.until(lambda d: d.execute_script("return document.readyState") == "complete")
     
+except Exception as e:
+    print(f'STOPPING EARLY - ERROR OCCURED: {e}')
+    allObjects.to_csv('objects.csv', index=False)
+
     nextPage = f'{MAIN_PAGE}butai/vilniuje/puslapis/{startPage-(page+1)}/?FOrder=AddDate'
     driver.get(nextPage)
     wait.until(lambda d: d.execute_script("return document.readyState") == "complete")
