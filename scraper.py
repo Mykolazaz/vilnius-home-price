@@ -43,7 +43,7 @@ driver.find_element(By.XPATH, '/html/body/div[1]/div[4]/div[1]/div[9]/a[7]').cli
 startPage = int(driver.find_element(By.CSS_SELECTOR, 'a.active-page').text)
 
 # Define DataFrame
-columns = ['city', 'manucipality', 'street', 'object_name', 'total_views', 'views_today', 'likes', 'price',
+columns = ['city', 'municipality', 'street', 'object_name', 'total_views', 'views_today', 'likes', 'price',
         'price_sq', 'house_number', 'flat_number', 'area', 'rooms', 'floor', 'total_floors', 'year',
         'object_type', 'building_type', 'heating', 'furnishing', 'energy_class', 'window_direction',
         'qualities', 'facilities', 'equipment', 'security', 'object_id', 'distance_kindergarden',
@@ -192,7 +192,7 @@ try:
             objNameList = list(map(str, re.split(',', objName)))
 
             allObjects.loc[page + i, 'city'] = objNameList[0]
-            allObjects.loc[page + i, 'manucipality'] = objNameList[1]
+            allObjects.loc[page + i, 'municipality'] = objNameList[1]
             allObjects.loc[page + i, 'street'] = objNameList[2]
             allObjects.loc[page + i, 'object_name'] = objNameList[3]
 
