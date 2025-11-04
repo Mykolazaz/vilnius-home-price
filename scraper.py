@@ -70,6 +70,8 @@ detailsNameMap = {'Namo numeris':'house_number',
                         'Papildoma įranga':'equipment',
                         'Apsauga':'security'}
 
+rowCounter = 0
+
 for page in range(PAGES_TO_VISIT):
 
     # Collect all natural housing posts
@@ -145,7 +147,7 @@ for page in range(PAGES_TO_VISIT):
         objPriceSq = re.sub(r'[^\d]', '', objPriceSqRaw)
 
         # Collect all object attribute names
-        objDetailsElemName = driver.find_elements(By.CSS_SELECTOR, 'dl.obj-details dt:not([class]')
+        objDetailsElemName = driver.find_elements(By.CSS_SELECTOR, 'dl.obj-details dt:not([class])')
         objDetailsName = [re.sub(r':', '', elem.text) for elem in objDetailsElemName]
         objDetailsName = [re.sub(r'sk.', 'skaičius', elem) for elem in objDetailsName]
         # Map names in Lithuanian to names in English
@@ -158,6 +160,7 @@ for page in range(PAGES_TO_VISIT):
         # Collect full object description
         objDescription = driver.find_element(By.CSS_SELECTOR, 'div#collapsedText').text
 
+        objContact = None
         objContact1 = driver.find_elements(By.CSS_SELECTOR, 'div.contact-form-sidebar--phone > div > span.phone_item_0')
         objContact2 = driver.find_elements(By.CSS_SELECTOR, 'div.contact-form-sidebar--phone > div > span')
         if len(objContact1) != 0:
@@ -166,13 +169,19 @@ for page in range(PAGES_TO_VISIT):
             objContact = objContact2[0].text
 
         # Collect distance to important services
-        objDistKinder = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'div[data-category="darzeliai"] > div.distance-info > div.distance-value'))).text
-        objDistSchool = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'div[data-category="mokyklos"] > div.distance-info > div.distance-value'))).text
+        objDistKinder = driver.find_elements(By.CSS_SELECTOR, 'div[data-category="darzeliai"] > div.distance-info > div.distance-value')
+        if len(objDistKinder) != 0:
+            objDistKinder = objDistKinder[0].text
+        objDistSchool = driver.find_elements(By.CSS_SELECTOR, 'div[data-category="mokyklos"] > div.distance-info > div.distance-value')
+        if len(objDistSchool) != 0:
+            objDistSchool = objDistSchool[0].text
         objDistBusStop = driver.find_elements(By.CSS_SELECTOR, 'div[data-category="stoteles"] > div.distance-info > div.distance-value')
         if len(objDistBusStop) != 0:
-            objDistBusStop = objDistBusStop[0].text
-            
-        objDistShop = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'div[data-category="parduotuves"] > div.distance-info > div.distance-value'))).text
+            objDistBusStop = objDistBusStop[0].text 
+        objDistShop = driver.find_elements(By.CSS_SELECTOR, 'div[data-category="parduotuves"] > div.distance-info > div.distance-value')
+        if len(objDistShop) != 0:
+            objDistShop = objDistShop[0].text
+
 
         objTimeCathedral = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(1) > div.destination-time.peak'))).text
         objDistCathedral = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(1) > div.destination-distance'))).text
@@ -192,70 +201,75 @@ for page in range(PAGES_TO_VISIT):
         
 
         # Create row in DataFrame
-        allObjects.loc[page + i] = None
+        allObjects.loc[rowCounter] = None
 
         # Insert object atrributes into DataFrame
         objNameList = list(map(str, re.split(',', objName)))
 
-        allObjects.loc[page + i, 'city'] = objNameList[0]
-        allObjects.loc[page + i, 'municipality'] = objNameList[1]
-        allObjects.loc[page + i, 'street'] = objNameList[2]
-        allObjects.loc[page + i, 'object_name'] = objNameList[3]
+        allObjects.loc[rowCounter, 'city'] = objNameList[0]
+        allObjects.loc[rowCounter, 'municipality'] = objNameList[1]
+        allObjects.loc[rowCounter, 'street'] = objNameList[2]
+        allObjects.loc[rowCounter, 'object_name'] = objNameList[3]
 
-        allObjects.loc[page + i, 'total_views'] = re.findall(r'(\d+)/', objViews)[0]
-        allObjects.loc[page + i, 'views_today'] = re.findall(r'/(\d+)', objViews)[0]
+        allObjects.loc[rowCounter, 'total_views'] = re.findall(r'(\d+)/', objViews)[0]
+        allObjects.loc[rowCounter, 'views_today'] = re.findall(r'/(\d+)', objViews)[0]
 
         if len(objLikes) != 0:
-            allObjects.loc[page + i, 'likes'] = objLikes
+            allObjects.loc[rowCounter, 'likes'] = objLikes
 
-        allObjects.loc[page + i, 'price'] = objPrice
-        allObjects.loc[page + i, 'price_sq'] = objPriceSq
+        allObjects.loc[rowCounter, 'price'] = objPrice
+        allObjects.loc[rowCounter, 'price_sq'] = objPriceSq
 
         for name, value in zip(objDetailsName, objDetailsValue):
             if name == 'area':
                 areaNoUnits = re.sub(f' m²', '', value)
                 areaNoComma = re.sub(f',', '.', areaNoUnits)
-                allObjects.loc[page + i, name] = float(areaNoComma)
+                allObjects.loc[rowCounter, name] = float(areaNoComma)
             elif name == 'furnishing':
                 furnishingNoAd = re.sub(f'  \nSužinok apdailos kainą', '', value)
-                allObjects.loc[page + i, name] = str(furnishingNoAd)
+                allObjects.loc[rowCounter, name] = str(furnishingNoAd)
             else:
-                allObjects.loc[page + i, name] = value
-
-        allObjects.loc[page + i, 'distance_kindergarden'] = re.sub(r'[^\d]', '', objDistKinder)
-        allObjects.loc[page + i, 'distance_school'] = re.sub(r'[^\d]', '', objDistSchool)
+                allObjects.loc[rowCounter, name] = value
+        
+        if len(objDistKinder) != 0:
+            allObjects.loc[rowCounter, 'distance_kindergarden'] = re.sub(r'[^\d]', '', objDistKinder)
+        if len(objDistSchool) != 0:
+            allObjects.loc[rowCounter, 'distance_school'] = re.sub(r'[^\d]', '', objDistSchool)
         if len(objDistBusStop) != 0:
-            allObjects.loc[page + i, 'distance_bus_stop'] = re.sub(r'[^\d]', '', objDistBusStop)
-        allObjects.loc[page + i, 'distance_shop'] = re.sub(r'[^\d]', '', objDistShop)
+            allObjects.loc[rowCounter, 'distance_bus_stop'] = re.sub(r'[^\d]', '', objDistBusStop)
+        if len(objDistShop) != 0:
+            allObjects.loc[rowCounter, 'distance_shop'] = re.sub(r'[^\d]', '', objDistShop)
 
         objTimeCathedral = re.search(r'(\d+)\s*-\s*(\d+)', objTimeCathedral)
         objTimeCathedral = np.mean(list(map(int, objTimeCathedral.groups())))
 
-        allObjects.loc[page + i, 'time_cathedral'] = objTimeCathedral
-        allObjects.loc[page + i, 'distance_cathedral'] = re.sub(r'[^\d|^\.]', '', objDistCathedral)
+        allObjects.loc[rowCounter, 'time_cathedral'] = objTimeCathedral
+        allObjects.loc[rowCounter, 'distance_cathedral'] = re.sub(r'[^\d|^\.]', '', objDistCathedral)
 
         objTimeTrainStation = re.search(r'(\d+)\s*-\s*(\d+)', objTimeTrainStation)
         objTimeTrainStation = np.mean(list(map(int, objTimeTrainStation.groups())))
 
-        allObjects.loc[page + i, 'time_train_station'] = objTimeTrainStation
-        allObjects.loc[page + i, 'distance_train_station'] = re.sub(r'[^\d|^\.]', '', objDistTrainStation)
+        allObjects.loc[rowCounter, 'time_train_station'] = objTimeTrainStation
+        allObjects.loc[rowCounter, 'distance_train_station'] = re.sub(r'[^\d|^\.]', '', objDistTrainStation)
 
         if len(objCrimes) != 0:
-            allObjects.loc[page + i, 'crimes'] = re.sub(r'[^\d|^\.]', '', objCrimes)
+            allObjects.loc[rowCounter, 'crimes'] = re.sub(r'[^\d|^\.]', '', objCrimes)
         if len(objNO2) != 0:
-            allObjects.loc[page + i, 'no2'] = re.sub(r'[^\d|^\.]', '', objNO2)
+            allObjects.loc[rowCounter, 'no2'] = re.sub(r'[^\d|^\.]', '', objNO2)
         if len(objKD10) != 0:
-            allObjects.loc[page + i, 'kd10'] = re.sub(r'[^\d|^\.]', '', objKD10)
+            allObjects.loc[rowCounter, 'kd10'] = re.sub(r'[^\d|^\.]', '', objKD10)
 
-        allObjects.loc[page + i, 'description'] = objDescription
+        allObjects.loc[rowCounter, 'description'] = objDescription
 
         if len(objContact1)!=0 or len(objContact2) != 0:
-            allObjects.loc[page + i, 'contact'] = objContact
+            allObjects.loc[rowCounter, 'contact'] = objContact
 
         # Print content to terminal
         print([objName, objViews, objPrice, objPriceSq])
         print(objDetailsName)
         print(f'{objDetailsValue}\n')
+
+        rowCounter += 1
 
         driver.back()
 
