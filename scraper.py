@@ -25,7 +25,7 @@ wait = WebDriverWait(driver, timeout=TIMEOUT)
 # Decline all cookies
 wait.until(EC.element_to_be_clickable((By.ID, 'onetrust-reject-all-handler'))).click()
 
-# Open municipality radio menu
+# Open eldership radio menu
 wait.until(EC.element_to_be_clickable((By.ID, 'display_FRegion'))).click()
 
 # Click on city Vilnius
@@ -43,7 +43,7 @@ driver.find_element(By.XPATH, '/html/body/div[1]/div[4]/div[1]/div[9]/a[7]').cli
 startPage = int(driver.find_element(By.CSS_SELECTOR, 'a.active-page').text)
 
 # Define DataFrame
-columns = ['city', 'municipality', 'street', 'object_name', 'total_views', 'views_today', 'likes', 'price',
+columns = ['city', 'eldership', 'street', 'object_name', 'total_views', 'views_today', 'likes', 'price',
         'price_sq', 'house_number', 'flat_number', 'area', 'rooms', 'floor', 'total_floors', 'year',
         'object_type', 'building_type', 'heating', 'furnishing', 'energy_class', 'window_direction',
         'qualities', 'facilities', 'equipment', 'security', 'object_id', 'distance_kindergarden',
@@ -207,7 +207,7 @@ for page in range(PAGES_TO_VISIT):
         objNameList = list(map(str, re.split(',', objName)))
 
         allObjects.loc[rowCounter, 'city'] = objNameList[0]
-        allObjects.loc[rowCounter, 'municipality'] = objNameList[1]
+        allObjects.loc[rowCounter, 'eldership'] = objNameList[1]
         allObjects.loc[rowCounter, 'street'] = objNameList[2]
         allObjects.loc[rowCounter, 'object_name'] = objNameList[3]
 
