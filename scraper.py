@@ -10,11 +10,11 @@ import numpy as np
 TIMEOUT = 5
 
 # Define number of visits (visits pagesToVisit + 1)
-PAGES_TO_VISIT = 104
+PAGES_TO_VISIT = 92
  
 MAIN_PAGE = 'https://www.aruodas.lt/'
 
-cService = webdriver.ChromeService(executable_path='./webdriver/chromedriver')
+cService = webdriver.ChromeService(executable_path='./webdriver/linux/chromedriver')
 driver = webdriver.Chrome(service=cService)
 
 driver.get(MAIN_PAGE)
