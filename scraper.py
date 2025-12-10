@@ -160,6 +160,13 @@ for page in range(PAGES_TO_VISIT):
         # Collect full object description
         objDescription = driver.find_element(By.CSS_SELECTOR, 'div#collapsedText').text
 
+        # Collect object coordinates
+        objCoordinates = driver.find_element(By.CSS_SELECTOR, 'div.obj-thumbs__wrapper > a.link-obj-thumb.vector-thumb-map')
+        objCoordinates = objCoordinates.get_attribute("href")
+        objCoordinates = re.findall(r'(\d+\.\d+)', objCoordinates)
+        objLatitude = objCoordinates[0]
+        objLongitude = objCoordinates[1]
+
         objContact = None
         objContact1 = driver.find_elements(By.CSS_SELECTOR, 'div.contact-form-sidebar--phone > div > span.phone_item_0')
         objContact2 = driver.find_elements(By.CSS_SELECTOR, 'div.contact-form-sidebar--phone > div > span')
@@ -263,6 +270,10 @@ for page in range(PAGES_TO_VISIT):
 
         if len(objContact1)!=0 or len(objContact2) != 0:
             allObjects.loc[rowCounter, 'contact'] = objContact
+
+        if len(objLatitude) != 0 and len(objLongitude) != 0:
+            allObjects.loc[rowCounter, 'latitude'] = objLatitude
+            allObjects.loc[rowCounter, 'longitude'] = objLongitude
 
         # Print content to terminal
         print([objName, objViews, objPrice, objPriceSq])
