@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 
 # Define max waiting time for element to appear
-TIMEOUT = 5
+TIMEOUT = 10
 
 # Define number of visits (visits pagesToVisit + 1)
 PAGES_TO_VISIT = 92
@@ -17,6 +17,7 @@ MAIN_PAGE = 'https://www.aruodas.lt/'
 cService = webdriver.ChromeService(executable_path='./webdriver/linux/chromedriver')
 driver = webdriver.Chrome(service=cService)
 
+driver.set_window_size(1280, 720)
 driver.get(MAIN_PAGE)
 
 # Define waiting object
