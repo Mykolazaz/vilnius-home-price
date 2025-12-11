@@ -45,11 +45,13 @@ startPage = int(driver.find_element(By.CSS_SELECTOR, 'a.active-page').text)
 
 # Define DataFrame
 columns = ['city', 'eldership', 'street', 'object_name', 'total_views', 'views_today', 'likes', 'price',
-        'price_sq', 'house_number', 'flat_number', 'area', 'rooms', 'floor', 'total_floors', 'year',
-        'object_type', 'building_type', 'heating', 'furnishing', 'energy_class', 'window_direction',
-        'qualities', 'facilities', 'equipment', 'security', 'object_id', 'distance_kindergarden',
-        'distance_school', 'distance_bus_stop', 'distance_shop', 'crimes', 'no2', 'kd10',
-        'time_cathedral', 'time_train_station', 'distance_cathedral', 'distance_train_station', 'description', 'contact']
+           'price_sq', 'house_number', 'flat_number', 'area', 'rooms', 'floor', 'total_floors', 'year',
+           'object_type', 'building_type', 'heating', 'furnishing', 'energy_class', 'window_direction',
+           'qualities', 'facilities', 'equipment', 'security', 'object_id', 'distance_kindergarden',
+           'distance_school', 'distance_bus_stop', 'distance_shop', 'crimes', 'no2', 'kd10',
+           'time_cathedral', 'time_train_station', 'time_shopping_center', 'time_kirtimai',
+           'distance_cathedral', 'distance_train_station', 'distance_shopping_center',
+           'distance_kirtimai', 'description', 'contact', 'latitude', 'longitude']
 allObjects = pd.DataFrame(columns=columns)
 
 detailsNameMap = {'Namo numeris':'house_number',
@@ -197,6 +199,12 @@ for page in range(PAGES_TO_VISIT):
         objTimeTrainStation = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(3) > div.destination-time.peak'))).text
         objDistTrainStation = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(3) > div.destination-distance'))).text
 
+        objTimeEuropa = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(2) > div.destination-time.peak'))).text
+        objDistEuropa = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(2) > div.destination-distance'))).text
+
+        objTimeKirtimai = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(4) > div.destination-time.peak'))).text
+        objDistKirtimai = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(4) > div.destination-distance'))).text
+
         objCrimes = driver.find_elements(By.XPATH, '//*[@id="advertStatisticHolder"]/div[3]/div[1]/span')
         objNO2 = driver.find_elements(By.XPATH, '//*[@id="advertStatisticHolder"]/div[1]/div[1]/div[1]/div[1]/span')
         objKD10 = driver.find_elements(By.XPATH, '//*[@id="advertStatisticHolder"]/div[1]/div[1]/div[2]/div[1]/span')
@@ -260,6 +268,18 @@ for page in range(PAGES_TO_VISIT):
         allObjects.loc[rowCounter, 'time_train_station'] = objTimeTrainStation
         allObjects.loc[rowCounter, 'distance_train_station'] = re.sub(r'[^\d|^\.]', '', objDistTrainStation)
 
+        objTimeEuropa = re.search(r'(\d+)\s*-\s*(\d+)', objTimeEuropa)
+        objTimeEuropa = np.mean(list(map(int, objTimeEuropa.groups())))
+
+        allObjects.loc[rowCounter, 'time_shopping_center'] = objTimeEuropa
+        allObjects.loc[rowCounter, 'distance_shopping_center'] = re.sub(r'[^\d|^\.]', '', objDistEuropa)
+
+        objTimeKirtimai = re.search(r'(\d+)\s*-\s*(\d+)', objTimeKirtimai)
+        objTimeKirtimai = np.mean(list(map(int, objTimeKirtimai.groups())))
+
+        allObjects.loc[rowCounter, 'time_kirtimai'] = objTimeKirtimai
+        allObjects.loc[rowCounter, 'distance_kirtimai'] = re.sub(r'[^\d|^\.]', '', objDistKirtimai)
+
         if len(objCrimes) != 0:
             allObjects.loc[rowCounter, 'crimes'] = re.sub(r'[^\d|^\.]', '', objCrimes)
         if len(objNO2) != 0:
@@ -293,4 +313,4 @@ for page in range(PAGES_TO_VISIT):
 
 
 # Save DataFrame to CSV
-allObjects.to_csv('objects.csv', index=False)
+allObjects.to_csv('./data/objects.csv', index=False)
