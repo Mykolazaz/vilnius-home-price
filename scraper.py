@@ -10,14 +10,14 @@ import numpy as np
 TIMEOUT = 10
 
 # Define number of visits (visits pagesToVisit + 1)
-PAGES_TO_VISIT = 92
+PAGES_TO_VISIT = 91
  
 MAIN_PAGE = 'https://www.aruodas.lt/'
 
 cService = webdriver.ChromeService(executable_path='./webdriver/linux/chromedriver')
 driver = webdriver.Chrome(service=cService)
 
-driver.set_window_size(1280, 720)
+driver.set_window_size(1920, 1080)
 driver.get(MAIN_PAGE)
 
 # Define waiting object
@@ -164,11 +164,12 @@ for page in range(PAGES_TO_VISIT):
         objDescription = driver.find_element(By.CSS_SELECTOR, 'div#collapsedText').text
 
         # Collect object coordinates
-        objCoordinates = driver.find_element(By.CSS_SELECTOR, 'div.obj-thumbs__wrapper > a.link-obj-thumb.vector-thumb-map')
-        objCoordinates = objCoordinates.get_attribute("href")
-        objCoordinates = re.findall(r'(\d+\.\d+)', objCoordinates)
-        objLatitude = objCoordinates[0]
-        objLongitude = objCoordinates[1]
+        objCoordinates = driver.find_elements(By.CSS_SELECTOR, 'div.obj-thumbs__wrapper > a.link-obj-thumb.vector-thumb-map')
+        if len(objCoordinates) != 0:
+            objCoordinates = objCoordinates[0].get_attribute("href")
+            objCoordinates = re.findall(r'(\d+\.\d+)', objCoordinates)
+            objLatitude = objCoordinates[0]
+            objLongitude = objCoordinates[1]
 
         objContact = None
         objContact1 = driver.find_elements(By.CSS_SELECTOR, 'div.contact-form-sidebar--phone > div > span.phone_item_0')
@@ -192,18 +193,19 @@ for page in range(PAGES_TO_VISIT):
         if len(objDistShop) != 0:
             objDistShop = objDistShop[0].text
 
+        
+        if len(driver.find_elements(By.CSS_SELECTOR, '#drive-times > div:nth-child(1) > div.destination-time.peak')) != 0:
+            objTimeCathedral = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(1) > div.destination-time.peak'))).text
+            objDistCathedral = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(1) > div.destination-distance'))).text
 
-        objTimeCathedral = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(1) > div.destination-time.peak'))).text
-        objDistCathedral = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(1) > div.destination-distance'))).text
+            objTimeTrainStation = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(3) > div.destination-time.peak'))).text
+            objDistTrainStation = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(3) > div.destination-distance'))).text
 
-        objTimeTrainStation = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(3) > div.destination-time.peak'))).text
-        objDistTrainStation = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(3) > div.destination-distance'))).text
+            objTimeEuropa = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(2) > div.destination-time.peak'))).text
+            objDistEuropa = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(2) > div.destination-distance'))).text
 
-        objTimeEuropa = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(2) > div.destination-time.peak'))).text
-        objDistEuropa = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(2) > div.destination-distance'))).text
-
-        objTimeKirtimai = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(4) > div.destination-time.peak'))).text
-        objDistKirtimai = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(4) > div.destination-distance'))).text
+            objTimeKirtimai = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(4) > div.destination-time.peak'))).text
+            objDistKirtimai = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#drive-times > div:nth-child(4) > div.destination-distance'))).text
 
         objCrimes = driver.find_elements(By.XPATH, '//*[@id="advertStatisticHolder"]/div[3]/div[1]/span')
         objNO2 = driver.find_elements(By.XPATH, '//*[@id="advertStatisticHolder"]/div[1]/div[1]/div[1]/div[1]/span')
@@ -256,29 +258,31 @@ for page in range(PAGES_TO_VISIT):
         if len(objDistShop) != 0:
             allObjects.loc[rowCounter, 'distance_shop'] = re.sub(r'[^\d]', '', objDistShop)
 
-        objTimeCathedral = re.search(r'(\d+)\s*-\s*(\d+)', objTimeCathedral)
-        objTimeCathedral = np.mean(list(map(int, objTimeCathedral.groups())))
+        if len(driver.find_elements(By.CSS_SELECTOR, '#drive-times > div:nth-child(1) > div.destination-time.peak')) != 0:
+            objTimeCathedral = re.search(r'(\d+)\s*-\s*(\d+)', objTimeCathedral)
+            objTimeCathedral = np.mean(list(map(int, objTimeCathedral.groups())))
 
-        allObjects.loc[rowCounter, 'time_cathedral'] = objTimeCathedral
-        allObjects.loc[rowCounter, 'distance_cathedral'] = re.sub(r'[^\d|^\.]', '', objDistCathedral)
+            allObjects.loc[rowCounter, 'time_cathedral'] = objTimeCathedral
+            allObjects.loc[rowCounter, 'distance_cathedral'] = re.sub(r'[^\d|^\.]', '', objDistCathedral)
 
-        objTimeTrainStation = re.search(r'(\d+)\s*-\s*(\d+)', objTimeTrainStation)
-        objTimeTrainStation = np.mean(list(map(int, objTimeTrainStation.groups())))
+            objTimeTrainStation = re.search(r'(\d+)\s*-\s*(\d+)', objTimeTrainStation)
+            objTimeTrainStation = np.mean(list(map(int, objTimeTrainStation.groups())))
 
-        allObjects.loc[rowCounter, 'time_train_station'] = objTimeTrainStation
-        allObjects.loc[rowCounter, 'distance_train_station'] = re.sub(r'[^\d|^\.]', '', objDistTrainStation)
+            allObjects.loc[rowCounter, 'time_train_station'] = objTimeTrainStation
+            allObjects.loc[rowCounter, 'distance_train_station'] = re.sub(r'[^\d|^\.]', '', objDistTrainStation)
 
-        objTimeEuropa = re.search(r'(\d+)\s*-\s*(\d+)', objTimeEuropa)
-        objTimeEuropa = np.mean(list(map(int, objTimeEuropa.groups())))
+            objTimeEuropa = re.search(r'(\d+)\s*-\s*(\d+)', objTimeEuropa)
+            objTimeEuropa = np.mean(list(map(int, objTimeEuropa.groups())))
 
-        allObjects.loc[rowCounter, 'time_shopping_center'] = objTimeEuropa
-        allObjects.loc[rowCounter, 'distance_shopping_center'] = re.sub(r'[^\d|^\.]', '', objDistEuropa)
+            allObjects.loc[rowCounter, 'time_shopping_center'] = objTimeEuropa
+            allObjects.loc[rowCounter, 'distance_shopping_center'] = re.sub(r'[^\d|^\.]', '', objDistEuropa)
 
-        objTimeKirtimai = re.search(r'(\d+)\s*-\s*(\d+)', objTimeKirtimai)
-        objTimeKirtimai = np.mean(list(map(int, objTimeKirtimai.groups())))
+            objTimeKirtimai = re.search(r'(\d+)\s*-\s*(\d+)', objTimeKirtimai)
+            objTimeKirtimai = np.mean(list(map(int, objTimeKirtimai.groups())))
 
-        allObjects.loc[rowCounter, 'time_kirtimai'] = objTimeKirtimai
-        allObjects.loc[rowCounter, 'distance_kirtimai'] = re.sub(r'[^\d|^\.]', '', objDistKirtimai)
+            allObjects.loc[rowCounter, 'time_kirtimai'] = objTimeKirtimai
+            allObjects.loc[rowCounter, 'distance_kirtimai'] = re.sub(r'[^\d|^\.]', '', objDistKirtimai)
+
 
         if len(objCrimes) != 0:
             allObjects.loc[rowCounter, 'crimes'] = re.sub(r'[^\d|^\.]', '', objCrimes)
