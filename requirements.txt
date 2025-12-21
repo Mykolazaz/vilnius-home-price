@@ -5,4 +5,6 @@ pandas
 geopandas
 numpy
 scipy
-xgboost
+
+--no-binary xgboost
+xgboost==3.1.2
