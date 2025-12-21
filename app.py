@@ -189,10 +189,10 @@ if st.button("Calculate price", type="primary"):
 
             input_df = pd.DataFrame([input_data])
 
-            addresses = pd.read_csv('./data/address_data.csv')
+            building_info = pd.read_csv('./data/building_info.csv')
             trip_statistics = pd.read_csv('trip_statistics.csv')
 
-            address_data = pd.merge(addresses, trip_statistics, left_on=['longitude', 'latitude'], right_on=['origin_lon', 'origin_lat'], how='left')
+            address_data = pd.merge(building_info, trip_statistics, left_on=['longitude', 'latitude'], right_on=['origin_lon', 'origin_lat'], how='left')
 
             distance = cdist(
                 input_df[['latitude', 'longitude']],
@@ -205,14 +205,18 @@ if st.button("Calculate price", type="primary"):
                                          'distance_cathedral', 'time_cathedral',
                                          'distance_kirtimai', 'time_kirtimai',
                                          'distance_shopping_center', 'time_shopping_center',
-                                         'distance_train_station', 'time_train_station']].to_numpy()[distance.argmin(axis=1)]
+                                         'distance_train_station', 'time_train_station',
+                                         'traffic_noise', 'airport_noise', 'railway_noise',
+                                         'heating_score']].to_numpy()[distance.argmin(axis=1)]
 
             address_info_df = pd.DataFrame(address_info_array, columns=['street', 'house_number', 'eldership',
                                                                          'distance_akropolis', 'time_akropolis',
                                                                          'distance_cathedral', 'time_cathedral',
                                                                          'distance_kirtimai', 'time_kirtimai',
                                                                          'distance_shopping_center', 'time_shopping_center',
-                                                                         'distance_train_station', 'time_train_station'])
+                                                                         'distance_train_station', 'time_train_station',
+                                                                         'traffic_noise', 'airport_noise', 'railway_noise',
+                                                                         'heating_score'])
 
             input_df['street'] = address_info_df['street'].values[0]
             input_df['house_number'] = address_info_df['house_number'].values[0]
@@ -227,41 +231,17 @@ if st.button("Calculate price", type="primary"):
             input_df['time_shopping_center'] = address_info_df['time_shopping_center'].values[0]
             input_df['distance_train_station'] = address_info_df['distance_train_station'].values[0]
             input_df['time_train_station'] = address_info_df['time_train_station'].values[0]
+            input_df['traffic_noise'] = address_info_df['traffic_noise'].values[0]
+            input_df['airport_noise'] = address_info_df['airport_noise'].values[0]
+            input_df['railway_noise'] = address_info_df['railway_noise'].values[0]
+            input_df['heating_score'] = address_info_df['heating_score'].values[0]
+
 
             input_geom = gpd.GeoDataFrame(
                 input_df, geometry=gpd.points_from_xy(input_df['longitude'], input_df['latitude']), crs="EPSG:4326"
             )
 
-            traffic_noise = gpd.read_file('./data/traffic_noise.geojson')
-            railway_noise = gpd.read_file('./data/railway_noise.geojson')
-            airport_noise = gpd.read_file('./data/airport_noise.geojson')
-
-            input_geom = gpd.sjoin(left_df=input_geom, right_df=traffic_noise[["TRIUKSM", "geometry"]], how="left", predicate="intersects")
-            if 'index_right' in input_geom.columns:
-                input_geom = input_geom.drop(columns=["index_right"])
-            input_geom.rename(columns={'TRIUKSM':'traffic_noise'}, inplace=True)
-            
-            input_geom = gpd.sjoin(left_df=input_geom, right_df=railway_noise[["TRIUKSM", "geometry"]], how="left", predicate="intersects")
-            if 'index_right' in input_geom.columns:
-                input_geom = input_geom.drop(columns=["index_right"])
-            input_geom.rename(columns={'TRIUKSM':'railway_noise'}, inplace=True)
-            
-            input_geom = gpd.sjoin(left_df=input_geom, right_df=airport_noise[["TRIUKSM", "geometry"]], how="left", predicate="intersects")
-            if 'index_right' in input_geom.columns:
-                input_geom = input_geom.drop(columns=["index_right"])
-            input_geom.rename(columns={'TRIUKSM':'airport_noise'}, inplace=True)
-
-            input_geom[['traffic_noise', 'railway_noise', 'airport_noise']] = input_geom[['traffic_noise', 'railway_noise', 'airport_noise']].fillna(value='0-34')
-
-            heating_score = gpd.read_file('./data/heating_score.geojson')
-            heating_score = pd.DataFrame(heating_score.groupby('ADRESAS')['REITING'].mean().round().reset_index(), columns=['ADRESAS', 'REITING'])
-
             input_geom['full_street'] = input_geom['street'] + ' ' + input_geom['house_number']
-
-            input_geom = pd.merge(input_geom, heating_score, left_on='full_street', right_on='ADRESAS', how="left")
-            if 'ADRESAS' in input_geom.columns:
-                input_geom = input_geom.drop(columns=['ADRESAS'])
-            input_geom.rename(columns={'REITING':'heating_score'}, inplace=True)
 
             population = gpd.read_file('./data/population.json')
             population = population.to_crs(crs='EPSG:4326')
@@ -272,7 +252,7 @@ if st.button("Calculate price", type="primary"):
             input_geom.rename(columns={'G2017':'local_population_2017'}, inplace=True)
 
             kinder = gpd.read_file('./data/kindergarden.csv')
-            kinder = pd.merge(left=kinder, right=addresses, left_on='address', right_on='fullAddress', how='left')
+            kinder = pd.merge(left=kinder, right=building_info, left_on='address', right_on='fullAddress', how='left')
             kinder = gpd.GeoDataFrame(
                 kinder, geometry=gpd.points_from_xy(kinder['longitude'], kinder['latitude']), crs="EPSG:4326"
             )
