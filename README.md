@@ -14,4 +14,8 @@ Achieved outcomes:
 
 - the current model could be further improved by extracting missing categorical features from text.
 
+The XGBoost model is deployed on [Heroku](https://vilnius-nostradamus-095f0ef45495.herokuapp.com/).
+
+![alt text](./vilnius-nostradamus.png)
+
 AI was used strictly only for debugging purposes.
