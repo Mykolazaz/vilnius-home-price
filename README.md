@@ -18,4 +18,4 @@ The XGBoost model is deployed on [Heroku](https://vilnius-nostradamus-095f0ef454
 
 ![alt text](./vilnius-nostradamus.png)
 
-AI was used strictly only for debugging purposes.
+AI was used for debugging purposes and model variable preparation in deployment app.
