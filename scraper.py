@@ -232,6 +232,8 @@ for page in range(PAGES_TO_VISIT):
         # Create row in DataFrame
         allObjects.loc[rowCounter] = None
 
+        allObjects.loc[rowCounter, 'id'] = re.match(r'\d{7}', url)
+
         # Insert object atrributes into DataFrame
         objNameList = list(map(str, re.split(',', objName)))
 
@@ -310,6 +312,8 @@ for page in range(PAGES_TO_VISIT):
         if len(objLatitude) != 0 and len(objLongitude) != 0:
             allObjects.loc[rowCounter, 'latitude'] = objLatitude
             allObjects.loc[rowCounter, 'longitude'] = objLongitude
+
+        allObjects.loc[rowCounter, 'url'] = url
 
         # Print content to terminal
         print([objName, objViews, objPrice, objPriceSq])
