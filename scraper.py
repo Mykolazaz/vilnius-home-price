@@ -110,6 +110,17 @@ for page in range(PAGES_TO_VISIT):
     for i, url in enumerate(pagePostLinks):
         driver.get(url)
 
+        objLatitude = []
+        objLongitude = []
+        objTimeCathedral = None
+        objDistCathedral = None
+        objTimeTrainStation = None
+        objDistTrainStation = None
+        objTimeEuropa = None
+        objDistEuropa = None
+        objTimeKirtimai = None
+        objDistKirtimai = None
+
         # Namo numeris
         # Buto numeris
         # Unikalus daikto numeris (RC numeris)
@@ -315,6 +326,7 @@ for page in range(PAGES_TO_VISIT):
     driver.get(nextPage)
     wait.until(lambda d: d.execute_script("return document.readyState") == "complete")
 
+driver.quit()
 
 # Save DataFrame to CSV
 allObjects.to_csv('./data/objects.csv', index=False)
