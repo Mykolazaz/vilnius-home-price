@@ -1,6 +1,6 @@
 # Apartment Prices in Vilnius
 
-This is a Python data scraping and analysis project with Selenium & Pandas. It is currently in development.
+This is a Python data scraping and analysis project with Selenium & Pandas.
 
 The main goal of this project is to **predict** apartment prices in Vilnius based on area, floor, location, proximity to amenities and text descriptions in listings.
 
@@ -8,7 +8,7 @@ The data was scraped from [Aruodas.lt](https://aruodas.lt/), the most popular Li
 
 Achieved outcomes:
 
-- an XGBoost model that achieves an R<sup>2</sup> of 0.886 and RMSLE of 0.24; 
+- an XGBoost model that achieves an R<sup>2</sup> of 0.874 and RMSLE of 0.26; 
 
 - best apartment price predicting variables were area, area per room, distance to bus stop, kindergarden & school and local population;
 
