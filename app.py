@@ -190,7 +190,7 @@ if st.button("Calculate price", type="primary"):
             input_df = pd.DataFrame([input_data])
 
             building_info = pd.read_csv('./data/building_info.csv')
-            trip_statistics = pd.read_csv('trip_statistics.csv')
+            trip_statistics = pd.read_csv('./data/trip_statistics.csv')
 
             address_data = pd.merge(building_info, trip_statistics, left_on=['longitude', 'latitude'], right_on=['origin_lon', 'origin_lat'], how='left')
 
