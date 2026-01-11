@@ -1,6 +1,6 @@
 # Apartment Prices in Vilnius
 
-This is a Python data scraping and analysis project with Selenium & Pandas.
+This is a Python data scraping and prediction project with Selenium & Pandas.
 
 The main goal of this project is to **predict** apartment prices in Vilnius based on area, floor, location, proximity to amenities and text descriptions in listings.
 
@@ -18,4 +18,4 @@ The XGBoost model is deployed on [Heroku](https://vilnius-nostradamus-095f0ef454
 
 ![alt text](./vilnius-nostradamus.png)
 
-AI was used for debugging purposes and model variable preparation in deployment app.
+AI was used for debugging, model variable preparation & map implementation in deployment app and general improvement suggestions (without code).
