@@ -8,11 +8,11 @@ The data was scraped from [Aruodas.lt](https://aruodas.lt/), the most popular Li
 
 Achieved outcomes:
 
-- an XGBoost model that achieves an R<sup>2</sup> of 0.874 and RMSLE of 0.26; 
+- an XGBoost model that achieves an R<sup>2</sup> of 0.883 ± 0.015 and RMSLE is 0.19.
 
-- best apartment price predicting variables were area, area per room, distance to bus stop, kindergarden & school and local population;
+- best apartment price predicting variables were area, build year and location based variables such as longitude, latitude and whether the apartment is located in Senamiestis;
 
-- the current model could be further improved by extracting missing categorical features from text.
+- the current model could be further improved by extracting missing categorical features from text and exploring other location-based features.
 
 The XGBoost model is deployed on [Heroku](https://vilnius-nostradamus-095f0ef45495.herokuapp.com/).
 
