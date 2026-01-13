@@ -22,7 +22,7 @@ model = load_model()
 
 st.title('Vilnius Apartment Nostradamus')
 st.write('This is an app that calculates apartment price based on data gathered from Aruodas.lt.')
-st.write('Your data is not collected.')
+st.write('Your input data is not collected.')
 
 area = st.number_input("Area, m²")
 rooms = st.number_input("Number of rooms", step=1)
@@ -30,109 +30,119 @@ floor = st.number_input("Floor", step=1)
 floors = st.number_input("Total number of floors", step=1)
 
 building_types = [
-    "Mūrinis",
-    "Blokinis",
-    "Monolitinis",
-    "Medinis",
-    "Rąstinis",
-    "Karkasinis",
-    "Skydinis",
-    "Kita"
+    {"display_name":"Mūrinis (Brick)", "input_name":"Mūrinis"},
+    {"display_name":"Blokinis (Block)", "input_name":"Blokinis"},
+    {"display_name":"Monolitinis (Monolithic)", "input_name":"Monolitinis"},
+    {"display_name":"Medinis (Wooden)", "input_name":"Medinis"},
+    {"display_name":"Rąstinis (Log)", "input_name":"Rąstinis"},
+    {"display_name":"Karkasinis (Frame)", "input_name":"Karkasinis"},
+    {"display_name":"Skydinis (Panel)", "input_name":"Skydinis"},
+    {"display_name":"Kita (Other)", "input_name":"Kita"}
 ]
+
+def format_display_name(record):
+    return record["display_name"]
 
 building_type = st.selectbox(
     "Select building type",
     options=building_types,
+    format_func=format_display_name
 )
+
+building_type = building_type["input_name"]
 
 
 heating_options = [
-    "Centrinis kolektorinis",
-    "Centrinis",
-    "Dujinis",
-    "Aeroterminis",
-    "Elektra",
-    "Kietu kuru",
-    "Geoterminis",
-    "Elektra, aeroterminis",
-    "Centrinis, elektra",
-    "Centrinis, centrinis kolektorinis",
-    "Centrinis kolektorinis, dujinis",
-    "Kita"
+    {"display_name": "Centrinis kolektorinis (Central collector)", "input_name": "Centrinis kolektorinis"},
+    {"display_name": "Centrinis (Central)", "input_name": "Centrinis"},
+    {"display_name": "Dujinis (Gas)", "input_name": "Dujinis"},
+    {"display_name": "Aeroterminis (Aerothermal)", "input_name": "Aeroterminis"},
+    {"display_name": "Elektra (Electricity)", "input_name": "Elektra"},
+    {"display_name": "Kietu kuru (Solid fuel)", "input_name": "Kietu kuru"},
+    {"display_name": "Geoterminis (Geothermal)", "input_name": "Geoterminis"},
+    {"display_name": "Elektra, aeroterminis (Electricity, aerothermal)", "input_name": "Elektra, aeroterminis"},
+    {"display_name": "Centrinis, elektra (Central, electricity)", "input_name": "Centrinis, elektra"},
+    {"display_name": "Centrinis, centrinis kolektorinis (Central, central collector)", "input_name": "Centrinis, centrinis kolektorinis"},
+    {"display_name": "Centrinis kolektorinis, dujinis (Central collector, gas)", "input_name": "Centrinis kolektorinis, dujinis"},
+    {"display_name": "Kita (Other)", "input_name": "Kita"}
 ]
 
 heating = st.selectbox(
     "Select heating type",
     options=heating_options,
+    format_func=format_display_name
 )
+
+heating = heating["input_name"]
 
 
 furnishing_options = [
-    "Įrengtas",
-    "Dalinė apdaila",
-    "Kita",
-    "Neįrengtas",
-    "Nebaigtas statyti",
+    {"display_name": "Įrengtas (Furnished)", "input_name": "Įrengtas"},
+    {"display_name": "Dalinė apdaila (Partially furnished)", "input_name": "Dalinė apdaila"},
+    {"display_name": "Neįrengtas (Unfurnished)", "input_name": "Neįrengtas"},
+    {"display_name": "Nebaigtas statyti (Unfinished)", "input_name": "Nebaigtas statyti"},
+    {"display_name": "Kita (Other)", "input_name": "Kita"}
 ]
 
 furnishing = st.selectbox(
     "Select furnishing type",
     options=furnishing_options,
+    format_func=format_display_name
 )
 
+furnishing = furnishing["input_name"]
 
-feature_labels = {
-    "enclosed_courtyard": "Enclosed courtyard",
-    "new_electrical_wiring": "New electrical wiring",
-    "on_auction": "On auction",
-    "separate_toilet_bathroom": "Separate toilet & bathroom",
-    "renovated": "Renovated",
-    "kitchen_connected_to_living_room": "Kitchen connected to living room",
-    "high_ceilings": "High ceilings",
-    "attic_apartment": "Attic apartment",
-    "internet": "Internet",
-    "elevator": "Elevator",
-    "multi_level_apartment": "Multi-level apartment",
-    "cable_tv": "Cable TV",
-    "new_sewerage_system": "New sewerage system",
-    "separate_entrance": "Separate entrance",
-    "terrace": "Terrace",
-    "attic": "Attic",
-    "closet": "Closet",
-    "sauna": "Sauna",
-    "parking_space": "Parking space",
-    "basement": "Basement",
-    "balcony": "Balcony",
-    "storage_room": "Storage room",
-    "washing_machine": "Washing machine",
-    "fridge": "Fridge",
-    "heated_floors": "Heated floors",
-    "air_conditioner": "Air conditioner",
-    "with_furniture": "With furniture",
-    "stove": "Stove",
-    "dishwasher": "Dishwasher",
-    "fireplace": "Fireplace",
-    "bathtub": "Bathtub",
-    "recuperation_system": "Recuperation system",
-    "shower_cabin": "Shower cabin",
-    "kitchen_set": "Kitchen set",
-    "plastic_pipes": "Plastic pipes",
-    "alarm_system": "Alarm system",
-    "security_guard": "Security guard",
-    "armored_door": "Armored door",
-    "code_locked_stairway": "Code-locked stairway",
-    "security_cameras": "Security cameras",
-}
 
-selected_labels = st.multiselect(
-    "Select all relevant features",
-    options=list(feature_labels.values()),
-)
-
-selected_features = [
-    key for key, label in feature_labels.items()
-    if label in selected_labels
+feature_options = [
+    {"display_name": "Uždaras kiemas (Enclosed courtyard)", "input_name": "enclosed_courtyard"},
+    {"display_name": "Nauja elektros instaliacija (New electrical wiring)", "input_name": "new_electrical_wiring"},
+    {"display_name": "Aukcionas (On auction)", "input_name": "on_auction"},
+    {"display_name": "Tualetas ir vonia atskirai (Separate toilet & bathroom)", "input_name": "separate_toilet_bathroom"},
+    {"display_name": "Renovuotas namas (Renovated building)", "input_name": "renovated"},
+    {"display_name": "Virtuvė sujungta su kambariu (Kitchen connected to living room)", "input_name": "kitchen_connected_to_living_room"},
+    {"display_name": "Aukštos lubos (High ceilings)", "input_name": "high_ceilings"},
+    {"display_name": "Butas palėpėje (Attic apartment)", "input_name": "attic_apartment"},
+    {"display_name": "Internetas (Internet)", "input_name": "internet"},
+    {"display_name": "Liftas (Elevator)", "input_name": "elevator"},
+    {"display_name": "Butas per kelis aukštus (Multi-level apartment)", "input_name": "multi_level_apartment"},
+    {"display_name": "Kabelinė televizija (Cable TV)", "input_name": "cable_tv"},
+    {"display_name": "Nauja kanalizacija (New sewerage system)", "input_name": "new_sewerage_system"},
+    {"display_name": "Atskiras įėjimas (Separate entrance)", "input_name": "separate_entrance"},
+    {"display_name": "Terasa (Terrace)", "input_name": "terrace"},
+    {"display_name": "Palėpė (Attic)", "input_name": "attic"},
+    {"display_name": "Drabužinė (Closet)", "input_name": "closet"},
+    {"display_name": "Pirtis (Sauna)", "input_name": "sauna"},
+    {"display_name": "Vieta automobiliui (Parking space)", "input_name": "parking_space"},
+    {"display_name": "Rūsys (Basement)", "input_name": "basement"},
+    {"display_name": "Balkonas (Balcony)", "input_name": "balcony"},
+    {"display_name": "Sandėliukas (Storage room)", "input_name": "storage_room"},
+    {"display_name": "Skalbimo mašina (Washing machine)", "input_name": "washing_machine"},
+    {"display_name": "Šaldytuvas (Fridge)", "input_name": "fridge"},
+    {"display_name": "Šildomos grindys (Heated floors)", "input_name": "heated_floors"},
+    {"display_name": "Kondicionierius (Air conditioner)", "input_name": "air_conditioner"},
+    {"display_name": "Su baldais (With furniture)", "input_name": "with_furniture"},
+    {"display_name": "Viryklė (Stove)", "input_name": "stove"},
+    {"display_name": "Indaplovė (Dishwasher)", "input_name": "dishwasher"},
+    {"display_name": "Židinys (Fireplace)", "input_name": "fireplace"},
+    {"display_name": "Vonia (Bathtub)", "input_name": "bathtub"},
+    {"display_name": "Rekuperacinė sistema (Recuperation system)", "input_name": "recuperation_system"},
+    {"display_name": "Dušo kabina (Shower cabin)", "input_name": "shower_cabin"},
+    {"display_name": "Virtuvės komplektas (Kitchen set)", "input_name": "kitchen_set"},
+    {"display_name": "Plastikiniai vamzdžiai (Plastic pipes)", "input_name": "plastic_pipes"},
+    {"display_name": "Signalizacija (Alarm system)", "input_name": "alarm_system"},
+    {"display_name": "Budintis sargas (Security guard)", "input_name": "security_guard"},
+    {"display_name": "Šarvuotos durys (Armored door)", "input_name": "armored_door"},
+    {"display_name": "Kodinė laiptinės spyna (Code-locked stairway)", "input_name": "code_locked_stairway"},
+    {"display_name": "Vaizdo kameros (Security cameras)", "input_name": "security_cameras"}
 ]
+
+selected_options = st.multiselect(
+    "Select all relevant features",
+    options=feature_options,
+    format_func=format_display_name
+)
+
+selected_features = [option["input_name"] for option in selected_options]
 
 lat = None
 lon = None
@@ -184,7 +194,8 @@ if st.button("Calculate price", type="primary"):
                 'longitude': lon
             }
 
-            for feature in feature_labels.keys():
+            for option in feature_options:
+                feature = option["input_name"]
                 input_data[feature] = 1 if feature in selected_features else 0
 
             input_df = pd.DataFrame([input_data])
