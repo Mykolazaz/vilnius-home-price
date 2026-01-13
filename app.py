@@ -183,7 +183,7 @@ if address_input:
     else:
         st.error("Address not found. Try a more specific address.")
 
-
+st.write("")
 if st.button("Calculate price", type="primary"):
     if lat is None or lon is None:
         st.error("Please enter a valid address first.")
@@ -322,7 +322,7 @@ if st.button("Calculate price", type="primary"):
                 st.warning("Model doesn't have feature_names_in_ attribute. Attempting prediction with current features.")
             
             prediction = np.exp(model.predict(input_for_prediction)[0])
-            st.success(f"Estimated Value: {round(prediction)} €")
+            st.metric(label="Estimated Value", value=f"{round(prediction):,} €".replace(",", " "))
             st.balloons()
             
         except Exception as e:
