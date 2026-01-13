@@ -24,10 +24,17 @@ st.title('Vilnius Apartment Nostradamus')
 st.write('This is an app that calculates apartment price based on data gathered from Aruodas.lt.')
 st.write('Your input data is not collected.')
 
-area = st.number_input("Area, m²")
-rooms = st.number_input("Number of rooms", step=1)
-floor = st.number_input("Floor", step=1)
-floors = st.number_input("Total number of floors", step=1)
+col1, col2 = st.columns(2)
+with col1:
+    area = st.number_input("Area, m²")
+with col2:
+    rooms = st.number_input("Number of rooms", step=1)
+
+col3, col4 = st.columns(2)
+with col3:
+    floor = st.number_input("Floor", step=1)
+with col4:
+    floors = st.number_input("Total number of floors", step=1)
 
 building_types = [
     {"display_name":"Mūrinis (Brick)", "input_name":"Mūrinis"},
