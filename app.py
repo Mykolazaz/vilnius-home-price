@@ -324,7 +324,7 @@ if st.button("Calculate price", type="primary"):
             prediction = np.exp(model.predict(input_for_prediction)[0])
             st.metric(label="Estimated Value", value=f"{round(prediction):,} €".replace(",", " "))
             if not selected_features:
-                st.warning("Warning: No relevant featured were selected. Price might be inaccurate.")
+                st.warning("Warning: No relevant features were selected. Price might be inaccurate.")
             st.balloons()
             
         except Exception as e:
