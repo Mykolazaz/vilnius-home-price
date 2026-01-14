@@ -26,15 +26,15 @@ st.write('Your input data is not collected.')
 
 col1, col2 = st.columns(2)
 with col1:
-    area = st.number_input("Area, m²")
+    area = st.number_input("Area, m²", max_value=350)
 with col2:
-    rooms = st.number_input("Number of rooms", step=1)
+    rooms = st.number_input("Number of rooms", step=1, max_value=12)
 
 col3, col4 = st.columns(2)
 with col3:
-    floor = st.number_input("Floor", step=1)
+    floor = st.number_input("Floor", step=1, max_value=50)
 with col4:
-    floors = st.number_input("Total number of floors", step=1)
+    floors = st.number_input("Total number of floors", step=1, max_value=50)
 
 building_types = [
     {"display_name":"Mūrinis (Brick)", "input_name":"Mūrinis"},
@@ -323,6 +323,8 @@ if st.button("Calculate price", type="primary"):
             
             prediction = np.exp(model.predict(input_for_prediction)[0])
             st.metric(label="Estimated Value", value=f"{round(prediction):,} €".replace(",", " "))
+            if not selected_features:
+                st.warning("Warning: No relevant featured were selected. Price might be inaccurate.")
             st.balloons()
             
         except Exception as e:
