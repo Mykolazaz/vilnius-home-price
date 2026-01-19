@@ -28,23 +28,75 @@ def get_location(address):
     return location
 
 
-st.title('Vilnius Apartment Nostradamus')
-st.write('This is an open-source app that calculates apartment price based on data gathered from Aruodas.lt.')
-st.write('Your input data is not collected.')
+TRANSLATIONS = {
+    "English": {
+        "title": 'My Apartment Price',
+        "description": 'This is an open-source app that calculates Vilnius apartment price.',
+        "privacy": 'Your input data is not collected.',
+        "area": "Area, m²",
+        "rooms": "Number of rooms",
+        "floor": "Floor",
+        "total_floors": "Total number of floors",
+        "year": "Year built",
+        "building_type": "Select building type",
+        "heating": "Select heating type",
+        "furnishing": "Select furnishing type",
+        "features": "Select all relevant features",
+        "address_label": "Enter address",
+        "calculate": "Calculate price",
+        "estimate": "Estimated Value",
+        "coordinates": "Coordinates:",
+        "address_error": "Address not found. Try a more specific address.",
+        "address_missing": "Please enter a valid address first.",
+        "prediction_error": "Error making prediction: ",
+        "check_fields": "Please ensure all fields are filled correctly.",
+        "warning_features": "Warning: No relevant features were selected. Price might be inaccurate."
+    },
+    "Lietuvių": {
+        "title": 'Mano Būsto Kaina',
+        "description": 'Tai atviro kodo programėlė, apskaičiuojanti buto Vilniuje kainą.',
+        "privacy": 'Jūsų įvesti duomenys nėra kaupiami.',
+        "area": "Plotas, m²",
+        "rooms": "Kambarių skaičius",
+        "floor": "Aukštas",
+        "total_floors": "Aukštų skaičius",
+        "year": "Statybos metai",
+        "building_type": "Pasirinkite pastato tipą",
+        "heating": "Pasirinkite šildymo tipą",
+        "furnishing": "Pasirinkite įrengimo lygį",
+        "features": "Pasirinkite ypatybes",
+        "address_label": "Įveskite adresą",
+        "calculate": "Skaičiuoti kainą",
+        "estimate": "Numatoma vertė",
+        "coordinates": "Koordinatės:",
+        "address_error": "Adresas nerastas. Bandykite patikslinti.",
+        "address_missing": "Pirmiausia įveskite galiojantį adresą.",
+        "prediction_error": "Klaida skaičiuojant: ",
+        "check_fields": "Įsitikinkite, kad visi laukai užpildyti teisingai.",
+        "warning_features": "Dėmesio: Nepasirinkta jokių ypatybių. Kaina gali būti netiksli."
+    }
+}
+
+language = st.sidebar.selectbox("Language / Kalba", options=["Lietuvių", "English"])
+t = TRANSLATIONS[language]
+
+st.title(t['title'])
+st.write(t['description'])
+st.write(t['privacy'])
 
 col1, col2 = st.columns(2)
 with col1:
-    area = st.number_input("Area, m²", max_value=350.0)
+    area = st.number_input(t['area'], max_value=350.0)
 with col2:
-    rooms = st.number_input("Number of rooms", step=1, max_value=12)
+    rooms = st.number_input(t['rooms'], step=1, max_value=12)
 
 col3, col4 = st.columns(2)
 with col3:
-    floor = st.number_input("Floor", step=1, max_value=50)
+    floor = st.number_input(t['floor'], step=1, max_value=50)
 with col4:
-    total_floors = st.number_input("Total number of floors", step=1, max_value=50)
+    total_floors = st.number_input(t['total_floors'], step=1, max_value=50)
 
-year_build = st.number_input("Year built", max_value=2030)
+year_build = st.number_input(t['year'], max_value=2030)
 
 building_types = [
     {"display_name":"Mūrinis (Brick)", "input_name":"Mūrinis"},
@@ -57,12 +109,13 @@ def format_display_name(record):
     return record["display_name"]
 
 building_type = st.selectbox(
-    "Select building type",
+    t['building_type'],
     options=building_types,
     format_func=format_display_name
 )
 
 building_type = building_type["input_name"]
+
 
 
 heating_options = [
@@ -81,12 +134,13 @@ heating_options = [
 ]
 
 heating = st.selectbox(
-    "Select heating type",
+    t['heating'],
     options=heating_options,
     format_func=format_display_name
 )
 
 heating = heating["input_name"]
+
 
 
 furnishing_options = [
@@ -98,12 +152,13 @@ furnishing_options = [
 ]
 
 furnishing = st.selectbox(
-    "Select furnishing type",
+    t['furnishing'],
     options=furnishing_options,
     format_func=format_display_name
 )
 
 furnishing = furnishing["input_name"]
+
 
 
 feature_options = [
@@ -150,22 +205,23 @@ feature_options = [
 ]
 
 selected_options = st.multiselect(
-    "Select all relevant features",
+    t['features'],
     options=feature_options,
     format_func=format_display_name
 )
 
 selected_features = [option["input_name"] for option in selected_options]
 
+
 lat = None
 lon = None
 
-address_input = st.text_input("Enter address", placeholder='Naugarduko g. 24')
+address_input = st.text_input(t['address_label'], placeholder='Naugarduko g. 24')
 if address_input:
     location = get_location(address_input)
     if location:
         lat, lon = location.latitude, location.longitude
-        st.write("Coordinates:", lat, lon)
+        st.write(t['coordinates'], lat, lon)
 
         deck = pdk.Deck(
             initial_view_state=pdk.ViewState(
@@ -186,14 +242,15 @@ if address_input:
         )
         st.pydeck_chart(deck, width=800)
     else:
-        st.error("Address not found. Try a more specific address.")
+        st.error(t['address_error'])
 
 st.write("")
-if st.button("Calculate price", type="primary"):
+if st.button(t['calculate'], type="primary"):
     if lat is None or lon is None:
-        st.error("Please enter a valid address first.")
+        st.error(t['address_missing'])
     else:
         try:
+
             model = load_model()
             input_data = {
                 'area': area,
@@ -321,7 +378,7 @@ if st.button("Calculate price", type="primary"):
                 st.warning("Model doesn't have feature_names_in_ attribute. Attempting prediction with current features.")
             
             prediction = np.exp(model.predict(input_for_prediction)[0])
-            st.metric(label="Estimated Value", value=f"{round(prediction):,} €".replace(",", " "))
+            st.metric(label=t['estimate'], value=f"{round(prediction):,} €".replace(",", " "))
 
             st.set_page_config(
                 page_title=f"{address_input} - {round(prediction):,} €".replace(",", " "),
@@ -329,12 +386,12 @@ if st.button("Calculate price", type="primary"):
             )
 
             if not selected_features:
-                st.warning("Warning: No relevant features were selected. Price might be inaccurate.")
+                st.warning(t['warning_features'])
             st.balloons()
             
         except Exception as e:
-            st.error(f"Error making prediction: {str(e)}")
-            st.write("Please ensure all fields are filled correctly.")
+            st.error(f"{t['prediction_error']}{str(e)}")
+            st.write(t['check_fields'])
             import traceback
             st.text(traceback.format_exc())
 
@@ -343,7 +400,7 @@ st.markdown(
     """
     <hr style="margin-top: 3rem; margin-bottom: 1rem;">
     <div style="text-align: center; color: gray; font-size: 0.9em;">
-        Built by <b>Mykolas Motiejūnas</b> · 
+        Sukūrė / Built by <b>Mykolas Motiejūnas</b> · 
         <a href="https://github.com/Mykolazaz" target="_blank">
             GitHub
         </a>
