@@ -21,7 +21,11 @@ def load_model():
         model = pkl.load(f)
     return model
 
-model = load_model()
+@st.cache_data
+def get_location(address):
+    geolocator = Nominatim(user_agent="streamlit_app")
+    location = geolocator.geocode(address, timeout=10)
+    return location
 
 
 st.title('Vilnius Apartment Nostradamus')
@@ -46,10 +50,6 @@ building_types = [
     {"display_name":"Mūrinis (Brick)", "input_name":"Mūrinis"},
     {"display_name":"Blokinis (Block)", "input_name":"Blokinis"},
     {"display_name":"Monolitinis (Monolithic)", "input_name":"Monolitinis"},
-    # {"display_name":"Medinis (Wooden)", "input_name":"Medinis"},
-    # {"display_name":"Rąstinis (Log)", "input_name":"Rąstinis"},
-    # {"display_name":"Karkasinis (Frame)", "input_name":"Karkasinis"},
-    # {"display_name":"Skydinis (Panel)", "input_name":"Skydinis"},
     {"display_name":"Kita (Other)", "input_name":"Kita"}
 ]
 
@@ -162,8 +162,7 @@ lon = None
 
 address_input = st.text_input("Enter address", placeholder='Naugarduko g. 24')
 if address_input:
-    geolocator = Nominatim(user_agent="streamlit_app")
-    location = geolocator.geocode(address_input, timeout=10)
+    location = get_location(address_input)
     if location:
         lat, lon = location.latitude, location.longitude
         st.write("Coordinates:", lat, lon)
@@ -195,6 +194,7 @@ if st.button("Calculate price", type="primary"):
         st.error("Please enter a valid address first.")
     else:
         try:
+            model = load_model()
             input_data = {
                 'area': area,
                 'rooms': rooms,
