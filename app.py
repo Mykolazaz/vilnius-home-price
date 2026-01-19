@@ -10,6 +10,10 @@ import numpy as np
 
 from scipy.spatial.distance import cdist
 
+st.set_page_config(
+    page_title='Mano Būsto Kaina',
+    page_icon=":house:"
+)
 
 @st.cache_resource
 def load_model():
@@ -26,7 +30,7 @@ st.write('Your input data is not collected.')
 
 col1, col2 = st.columns(2)
 with col1:
-    area = st.number_input("Area, m²", max_value=350)
+    area = st.number_input("Area, m²", max_value=350.0)
 with col2:
     rooms = st.number_input("Number of rooms", step=1, max_value=12)
 
@@ -34,16 +38,18 @@ col3, col4 = st.columns(2)
 with col3:
     floor = st.number_input("Floor", step=1, max_value=50)
 with col4:
-    floors = st.number_input("Total number of floors", step=1, max_value=50)
+    total_floors = st.number_input("Total number of floors", step=1, max_value=50)
+
+year_build = st.number_input("Year built", max_value=2030)
 
 building_types = [
     {"display_name":"Mūrinis (Brick)", "input_name":"Mūrinis"},
     {"display_name":"Blokinis (Block)", "input_name":"Blokinis"},
     {"display_name":"Monolitinis (Monolithic)", "input_name":"Monolitinis"},
-    {"display_name":"Medinis (Wooden)", "input_name":"Medinis"},
-    {"display_name":"Rąstinis (Log)", "input_name":"Rąstinis"},
-    {"display_name":"Karkasinis (Frame)", "input_name":"Karkasinis"},
-    {"display_name":"Skydinis (Panel)", "input_name":"Skydinis"},
+    # {"display_name":"Medinis (Wooden)", "input_name":"Medinis"},
+    # {"display_name":"Rąstinis (Log)", "input_name":"Rąstinis"},
+    # {"display_name":"Karkasinis (Frame)", "input_name":"Karkasinis"},
+    # {"display_name":"Skydinis (Panel)", "input_name":"Skydinis"},
     {"display_name":"Kita (Other)", "input_name":"Kita"}
 ]
 
@@ -193,12 +199,15 @@ if st.button("Calculate price", type="primary"):
                 'area': area,
                 'rooms': rooms,
                 'floor': floor,
-                'floors': floors,
+                'total_floors': total_floors,
+                'floor_ratio': 1.0 * floor / total_floors,
+                'area_room_ratio': 1.0 * area / rooms,
                 'building_type': building_type,
                 'heating': heating,
                 'furnishing': furnishing,
                 'latitude': lat,
-                'longitude': lon
+                'longitude': lon,
+                'year_build': year_build
             }
 
             for option in feature_options:
@@ -218,8 +227,8 @@ if st.button("Calculate price", type="primary"):
                 metric='euclidean'
             )
 
-            address_info_array = address_data[['street', 'houseNo', 'eldership',
-                                         'distance_akropolis', 'time_akropolis',
+            address_info_array = address_data[['houseNo', 'eldership',
+                                         'time_akropolis',
                                          'distance_cathedral', 'time_cathedral',
                                          'distance_kirtimai', 'time_kirtimai',
                                          'distance_shopping_center', 'time_shopping_center',
@@ -227,8 +236,8 @@ if st.button("Calculate price", type="primary"):
                                          'traffic_noise', 'airport_noise', 'railway_noise',
                                          'heating_score']].to_numpy()[distance.argmin(axis=1)]
 
-            address_info_df = pd.DataFrame(address_info_array, columns=['street', 'house_number', 'eldership',
-                                                                         'distance_akropolis', 'time_akropolis',
+            address_info_df = pd.DataFrame(address_info_array, columns=['house_number', 'eldership',
+                                                                         'time_akropolis',
                                                                          'distance_cathedral', 'time_cathedral',
                                                                          'distance_kirtimai', 'time_kirtimai',
                                                                          'distance_shopping_center', 'time_shopping_center',
@@ -236,7 +245,6 @@ if st.button("Calculate price", type="primary"):
                                                                          'traffic_noise', 'airport_noise', 'railway_noise',
                                                                          'heating_score'])
 
-            input_df['street'] = address_info_df['street'].values[0]
             input_df['house_number'] = address_info_df['house_number'].values[0]
             input_df['eldership'] = address_info_df['eldership'].values[0]
             input_df['time_akropolis'] = address_info_df['time_akropolis'].values[0]
@@ -253,8 +261,6 @@ if st.button("Calculate price", type="primary"):
             input_geom = gpd.GeoDataFrame(
                 input_df, geometry=gpd.points_from_xy(input_df['longitude'], input_df['latitude']), crs="EPSG:4326"
             )
-
-            input_geom['full_street'] = input_geom['street'] + ' ' + input_geom['house_number']
 
             population = gpd.read_file('./data/population.json')
             population = population.to_crs(crs='EPSG:4326')
@@ -288,12 +294,10 @@ if st.button("Calculate price", type="primary"):
             input_geom.rename(columns={'VISI':'crimes_2024'}, inplace=True)
             
             columns_to_drop = ['geometry']
-            if 'full_street' in input_geom.columns:
-                columns_to_drop.append('full_street')
             
             input_for_prediction = input_geom.drop(columns=columns_to_drop)
             
-            categorical_cols = ['building_type', 'heating', 'furnishing', 'street', 'eldership', 
+            categorical_cols = ['building_type', 'heating', 'furnishing', 'eldership', 
                               'traffic_noise', 'railway_noise', 'airport_noise']
             for col in categorical_cols:
                 if col in input_for_prediction.columns:
@@ -318,6 +322,12 @@ if st.button("Calculate price", type="primary"):
             
             prediction = np.exp(model.predict(input_for_prediction)[0])
             st.metric(label="Estimated Value", value=f"{round(prediction):,} €".replace(",", " "))
+
+            st.set_page_config(
+                page_title=f"{address_input} - {round(prediction):,} €".replace(",", " "),
+                page_icon=":house:"
+            )
+
             if not selected_features:
                 st.warning("Warning: No relevant features were selected. Price might be inaccurate.")
             st.balloons()

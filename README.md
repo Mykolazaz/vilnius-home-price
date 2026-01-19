@@ -10,7 +10,7 @@ The XGBoost model is deployed on [Heroku](https://vilnius-nostradamus-095f0ef454
 
 #### Achieved outcomes:
 
-- The XGBoost model achieves an R<sup>2</sup> of 0.883 ± 0.015, with an average prediction error of approximately 21%. This provides a solid baseline for estimating apartment prices in Vilnius.
+- The XGBoost model achieves an R<sup>2</sup> of 0.894 ± 0.015, with an average prediction error of approximately 21%. This provides a solid baseline for estimating apartment prices in Vilnius.
 - Area is the most significant predictor of price. Year of construction and location also play crucial roles.
 - The model struggles with non-standard properties (such as lofts in industrial zones, ultra-luxury apartments) and listings with incomplete data. The discrepancy arises from qualitative factors ('prestige', condition of the building's exterior) that are not fully captured by tabular data.
 
