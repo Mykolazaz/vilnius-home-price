@@ -2,17 +2,17 @@
 
 This is a Python data scraping and prediction project with Selenium & Pandas.
 
-The main goal of this project is to build a tool that **predicts** apartment prices in Vilnius based on area, floor, location, proximity to amenities and text descriptions in listings.
+The main goal of this project is to build a tool that **predicts** apartment prices in Vilnius based on area, floor, location, proximity to key buildings and text descriptions in listings.
 
 The data was scraped from [Aruodas.lt](https://aruodas.lt/), the most popular Lithuanian real estate marketplace.
 
-The XGBoost model is deployed on [Heroku](https://vilnius-nostradamus-095f0ef45495.herokuapp.com/).
+The XGBoost model is deployed on [manobustokaina.lt](https://www.manobustokaina.lt/).
 
 #### Achieved outcomes:
 
 - The XGBoost model achieves an R<sup>2</sup> of 0.894 ± 0.015, with an average prediction error of approximately 21%. This provides a solid baseline for estimating apartment prices in Vilnius.
 - Area is the most significant predictor of price. Year of construction and location also play crucial roles.
-- The model struggles with non-standard properties (such as lofts in industrial zones, ultra-luxury apartments) and listings with incomplete data. The discrepancy arises from qualitative factors ('prestige', condition of the building's exterior) that are not fully captured by tabular data.
+- The model struggles with non-standard properties (such as lofts in industrial zones, ultra-luxury apartments) and listings with incomplete data. The discrepancy arises from qualitative factors ('prestige', condition of the building's exterior & apartment interior) that are not fully captured by tabular data.
 
 #### What can be improved?
 1. Image analysis: Incorporating image analysis (listing photos) could help assess the condition (renovation quality, view) better than binary features like `renovated`.
@@ -22,6 +22,6 @@ The XGBoost model is deployed on [Heroku](https://vilnius-nostradamus-095f0ef454
 5. SHAP values for users: Displaying SHAP values in the deployed application would provide transparency, helping users understand why a specific price was predicted.
 
 
-![alt text](./vilnius-nostradamus.png)
+![Application Image](./app-image.png)
 
 AI was used for debugging, model variable preparation, multiple language & map implementation in deployment app and general improvement suggestions (without code).

@@ -327,7 +327,7 @@ if st.button(t['calculate'], type="primary"):
                 input_geom = input_geom.drop(columns=["index_right"])
             input_geom.rename(columns={'G2017':'local_population_2017'}, inplace=True)
 
-            kinder = gpd.read_file('./data/kindergarden.csv')
+            kinder = gpd.read_file('./data/kindergarten.csv')
             kinder = pd.merge(left=kinder, right=building_info, left_on='address', right_on='fullAddress', how='left')
             kinder = gpd.GeoDataFrame(
                 kinder, geometry=gpd.points_from_xy(kinder['longitude'], kinder['latitude']), crs="EPSG:4326"
