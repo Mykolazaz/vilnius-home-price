@@ -15,11 +15,10 @@ The XGBoost model is deployed on [manobustokaina.lt](https://www.manobustokaina.
 - The model struggles with non-standard properties (such as lofts in industrial zones, ultra-luxury apartments) and listings with incomplete data. The discrepancy arises from qualitative factors ('prestige', condition of the building's exterior & apartment interior) that are not fully captured by tabular data.
 
 #### What can be improved?
-1. Image analysis: Incorporating image analysis (listing photos) could help assess the condition (renovation quality, view) better than binary features like `renovated`.
-2. Micro-location: Developing a `neighborhood score` could help differentiate between different areas that are equally far from the center but have vastly different market values.
-3. Other models: Experimenting with other gradient boosting frameworks like LightGBM might help achieve higher accuracy.
-4. Confidence interval: Predicting a price interval would be valuable for users, indicating when the model is uncertain.
-5. SHAP values for users: Displaying SHAP values in the deployed application would provide transparency, helping users understand why a specific price was predicted.
+1. Micro-location: Developing a `neighborhood score` could help differentiate between different areas that are equally far from the center but have vastly different market values.
+2. Other models: Experimenting with other gradient boosting frameworks like LightGBM might help achieve higher accuracy.
+3. Confidence interval: Predicting a price interval would be valuable for users, indicating when the model is uncertain.
+4. SHAP values for users: Displaying SHAP values in the deployed application would provide transparency, helping users understand why a specific price was predicted.
 
 
 ![Application Image](./app-image.png)
